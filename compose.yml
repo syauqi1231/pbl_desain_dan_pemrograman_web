@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgres:18-alpine
+    container_name: boutique-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: boutique
+      POSTGRES_PASSWORD: boutique
+      POSTGRES_DB: boutique
+    ports:
+      - "5433:5432"
+    volumes:
+      - boutique_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U boutique -d boutique"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+volumes:
+  boutique_pgdata:

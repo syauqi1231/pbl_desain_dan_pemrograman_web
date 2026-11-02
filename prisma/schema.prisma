@@ -1,0 +1,183 @@
+// Prisma schema for the boutique demo.
+// Money is stored as whole rupiah integers. Every price that a customer sees
+// is recomputed here on the server, never trusted from the browser.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum Collection {
+  BARU
+  BATIK
+  KEBAYA
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  AWAITING_VERIFICATION
+  PAID
+  PROCESSING
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  QRIS
+  BANK_TRANSFER
+}
+
+enum PaymentStatus {
+  UNPAID
+  PROOF_UPLOADED
+  VERIFIED
+  REJECTED
+}
+
+enum TryOnStatus {
+  PROCESSING
+  DONE
+  FAILED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  name         String
+  passwordHash String
+  role         Role       @default(CUSTOMER)
+  phone        String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  sessions     Session[]
+  orders       Order[]
+  tryOnJobs    TryOnJob[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  slug            String           @unique
+  name            String
+  description     String
+  material        String
+  price           Int
+  collections     Collection[]
+  tone            Int              @default(300)
+  image           String?
+  imageAlt        String?
+  tryOnCategory   String           @default("upper_body")
+  tryOnPhotoType  String?
+  active          Boolean          @default(true)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  variants        ProductVariant[]
+  orderItems      OrderItem[]
+  tryOnJobs       TryOnJob[]
+
+  @@index([active])
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String
+  stock     Int      @default(0)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([productId, size])
+}
+
+model Order {
+  id               String        @id @default(cuid())
+  number           String        @unique
+  userId           String
+  user             User          @relation(fields: [userId], references: [id], onDelete: Restrict)
+  status           OrderStatus   @default(PENDING_PAYMENT)
+  paymentMethod    PaymentMethod
+  paymentStatus    PaymentStatus @default(UNPAID)
+  subtotal         Int
+  shippingCost     Int
+  total            Int
+  recipientName    String
+  phone            String
+  addressLine      String
+  city             String
+  postalCode       String
+  note             String?
+  paymentReference String
+  proofPath        String?
+  proofMime        String?
+  proofName        String?
+  proofUploadedAt  DateTime?
+  adminNote        String?
+  stockRestored    Boolean       @default(false)
+  paidAt           DateTime?
+  shippedAt        DateTime?
+  completedAt      DateTime?
+  cancelledAt      DateTime?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  items            OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  name      String
+  size      String
+  price     Int
+  qty       Int
+  lineTotal Int
+  createdAt DateTime @default(now())
+
+  @@index([orderId])
+}
+
+model TryOnJob {
+  id         String       @id @default(cuid())
+  userId     String?
+  user       User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  productId  String?
+  product    Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
+  status     TryOnStatus  @default(PROCESSING)
+  provider   String       @default("stub")
+  photoPath  String?
+  resultPath String?
+  note       String?
+  error      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+
+  @@index([userId])
+}
