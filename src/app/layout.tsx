@@ -1,27 +1,67 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Playfair_Display, Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
+import { siteUrl } from "@/lib/seo";
 import "./globals.css";
 
-const display = Playfair_Display({
-  variable: "--font-display",
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const body = Plus_Jakarta_Sans({
+const body = Inter({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",
 });
 
+const siteName = "Nama Boutique";
+const description =
+  "Kebaya, batik, dan tenun pilihan. Coba tampilannya dengan AI Virtual Try-On sebelum memesan.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
+  applicationName: siteName,
   title: {
-    default: "Nama Boutique",
-    template: "%s | Nama Boutique",
+    default: siteName,
+    template: `%s | ${siteName}`,
   },
-  description:
-    "Kebaya, batik, dan tenun pilihan. Coba tampilannya dengan AI Virtual Try-On sebelum memesan.",
+  description,
+  keywords: [
+    "kebaya modern",
+    "batik tulis",
+    "tenun ikat",
+    "boutique Indonesia",
+    "virtual try-on",
+    "AI try-on",
+  ],
+  authors: [{ name: siteName }],
+  creator: siteName,
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: "/",
+    siteName,
+    title: siteName,
+    description,
+    images: [
+      {
+        url: "/hero-kebaya.jpg",
+        alt: "Model memakai kebaya dengan kain batik",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: siteName,
+    description,
+    images: ["/hero-kebaya.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
 };
 
 export default function RootLayout({
@@ -32,7 +72,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${display.variable} ${body.variable} h-full`}
+      className={`${body.variable} h-full`}
     >
       <body className="flex min-h-full flex-col">{children}</body>
     </html>

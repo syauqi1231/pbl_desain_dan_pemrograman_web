@@ -1,7 +1,8 @@
 import "server-only";
 
 import { randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const DATA_DIR = path.resolve(
@@ -10,7 +11,9 @@ const DATA_DIR = path.resolve(
 
 const PUBLIC_DIR = path.join(process.cwd(), "public");
 
-const kinds = new Set(["proofs", "tryon", "results"]);
+const kinds = new Set(["proofs", "tryon", "results", "products"]);
+
+const PRODUCT_IMAGE_PREFIX = "/api/product-image/";
 
 const mimeExtensions: Record<string, string> = {
   "image/jpeg": ".jpg",
@@ -20,7 +23,7 @@ const mimeExtensions: Record<string, string> = {
 
 const allowedExtensions = new Set([".jpg", ".jpeg", ".png", ".webp"]);
 
-export type UploadKind = "proofs" | "tryon" | "results";
+export type UploadKind = "proofs" | "tryon" | "results" | "products";
 
 export async function saveUpload(
   file: File,
@@ -103,4 +106,56 @@ export async function readPublicImage(publicPath: string): Promise<Buffer> {
     throw new Error("Path gambar tidak valid.");
   }
   return readFile(full);
+}
+
+function storedProductFilename(imagePath: string): string | null {
+  if (!imagePath.startsWith(PRODUCT_IMAGE_PREFIX)) return null;
+
+  const filename = imagePath.slice(PRODUCT_IMAGE_PREFIX.length);
+  if (
+    !/^[a-f0-9-]{36}\.(?:jpe?g|png|webp)$/i.test(filename) ||
+    path.basename(filename) !== filename
+  ) {
+    return null;
+  }
+
+  return filename;
+}
+
+export function productImageExists(imagePath: string): boolean {
+  const filename = storedProductFilename(imagePath);
+  return filename
+    ? existsSync(path.join(DATA_DIR, "products", filename))
+    : false;
+}
+
+export async function saveProductImage(
+  file: File,
+  maxBytes: number,
+): Promise<{ path: string; url: string; mime: string }> {
+  const saved = await saveUpload(file, "products", maxBytes);
+  const filename = path.basename(saved.path);
+
+  return {
+    path: saved.path,
+    url: `${PRODUCT_IMAGE_PREFIX}${filename}`,
+    mime: saved.mime,
+  };
+}
+
+export async function deleteProductImage(imagePath: string | null): Promise<void> {
+  if (!imagePath) return;
+  const filename = storedProductFilename(imagePath);
+  if (!filename) return;
+
+  await unlink(path.join(DATA_DIR, "products", filename)).catch(() => {});
+}
+
+export async function readProductImage(imagePath: string): Promise<Buffer> {
+  const filename = storedProductFilename(imagePath);
+  if (filename) {
+    return readFile(path.join(DATA_DIR, "products", filename));
+  }
+
+  return readPublicImage(imagePath);
 }

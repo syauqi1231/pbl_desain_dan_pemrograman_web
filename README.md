@@ -1,51 +1,230 @@
-# Boutique frontend
+# Boutique — Next.js, Prisma, and FASHN Virtual Try-On
 
-Next.js 16 + Tailwind 4 frontend for the Warm Ivory boutique design.
-The backend is deliberately not scaffolded yet. Product, order and chat data
-come from `src/lib/mock/`.
+A full-stack boutique demo for an Indonesian shop selling kebaya, batik, and
+tenun. The UI keeps the **Warm Ivory** visual direction. The app is in Indonesian
+and includes a real, server-side integration with the official **FASHN VTON v1.5**
+Hugging Face Space.
 
-## Run
+## Stack
+
+| Layer | Choice |
+|---|---|
+| Framework | Next.js 16 (App Router, Route Handlers, Server Components) |
+| UI | React 19, Tailwind CSS 4, custom Warm Ivory tokens |
+| Database | PostgreSQL 18 + Prisma 6 |
+| Validation | Zod 4 |
+| Auth | Opaque session cookies, SHA-256 token hashes, scrypt passwords |
+| Try-on | FASHN VTON v1.5 on Hugging Face (Gradio queue API, no local GPU) |
+| Fonts | Inter (single type family for display and body) |
+| SEO | Metadata API, JSON-LD, `robots.txt`, `sitemap.xml`, OpenGraph/Twitter |
+
+## Features
+
+### Storefront and customer account
+
+- Catalog with collection filters (`baru`, `batik`, `kebaya`), product detail,
+  size/stock selection, cart, checkout, QRIS or bank-transfer payment, payment
+  proof upload, and an order timeline.
+- Registration, login, logout, and session cookies.
+- **Profile CRUD** at `/akun/profil`: update name, email, phone, and shipping
+  address; clear the address; change password; delete the account.
+  Account deletion anonymizes the profile but keeps order history for the admin.
+- Checkout prefills the saved phone and address.
+
+### Admin back office
+
+- Live dashboard with revenue, pending verification, active product, and open
+  order counts.
+- Order list and detail pages, payment verification, status transitions,
+  cancellation, and an order timeline.
+- **Product create/edit/deactivate** with a real image-upload form. The admin
+  does not type a filesystem path.
+- Product photos are validated (JPG/PNG/WebP, max 5 MB), stored under
+  `.data/products/`, served through `/api/product-image/[name]`, and deleted
+  when replaced.
+- Admin order/product pages refresh automatically so new customer orders appear
+  without a manual reload.
+
+### AI Virtual Try-On
+
+- The customer uploads a full-body photo (JPG/JPEG/PNG/WebP, max 8 MB), sees a
+  preview, can replace or remove it, then picks an eligible catalog product.
+- The primary action is exactly **“Generate Virtual Try-On”**.
+- The result screen shows the generated image, the provider note, retry,
+  download, and return-to-selection controls. Errors are specific and readable.
+- Duplicate submissions are blocked on the client and rate-limited on the server.
+
+## How the FASHN integration works
+
+1. The browser posts `multipart/form-data` to `POST /api/try-on` with the photo
+   and `productSlug`.
+2. The route handler validates the same-origin request, the session, MIME type,
+   size, and per-user rate limit.
+3. Only products explicitly marked for try-on are accepted. `Product.tryOnPhotoType`
+   is `model`, `flat-lay`, or `null`; fabric-detail photos are marked `null` so
+   they are never sent to FASHN.
+4. `src/lib/tryon.ts` converts both images to base64 data URLs and calls the
+   official Space queue:
+   - `POST https://fashn-ai-fashn-vton-1-5.hf.space/gradio_api/call/try_on`
+   - `GET  .../gradio_api/call/try_on/{event_id}` (Server-Sent Events)
+5. Category mapping: `upper_body → tops`, `lower_body → bottoms`,
+   `dresses → one-pieces`.
+6. The returned image URL is restricted to the Space host and downloaded
+   server-side. The generated result is stored in `.data/results/`; it is served
+   only to its owner through `/api/try-on/[id]/image`.
+7. **The customer photo is never written to disk.** `TryOnJob.photoPath` stays
+   `null`; the photo only lives in memory for the request.
+8. Provider failures map to safe responses: timeout (504), free-quota/rate limit
+   (429), unavailable/sleeping Space (503), rejected image (422).
+
+The Space is public, so `HF_TOKEN` is optional. When present it is read only on
+the server and is never exposed to the browser.
+
+## Getting started
+
+### Requirements
+
+- Node.js 20 or newer
+- PostgreSQL 16+ (PostgreSQL 18 is used here), or Docker
+
+### 1. Environment
+
+```bash
+cp .env.example .env
+```
+
+Fill these values in `.env`:
+
+```dotenv
+POSTGRES_USER="boutique"
+POSTGRES_PASSWORD="choose-a-local-password"
+POSTGRES_DB="boutique"
+DATABASE_URL="postgresql://boutique:choose-a-local-password@127.0.0.1:5433/boutique?schema=public"
+APP_URL="http://localhost:3000"
+ADMIN_EMAIL="admin@example.com"
+ADMIN_PASSWORD="choose-an-admin-password"
+CUSTOMER_EMAIL="customer@example.com"
+CUSTOMER_PASSWORD="choose-a-customer-password"
+```
+
+`ADMIN_PASSWORD` and `CUSTOMER_PASSWORD` are required by the seed script;
+there are no fallback passwords in the source. Optional variables are listed
+below.
+
+### 2. Database and seed
 
 ```bash
 npm install
-npm run dev
+docker compose up -d        # only if you use the bundled PostgreSQL
+npx prisma db push
+npm run db:seed
 ```
 
-Open http://localhost:3000
+The seed resets the seeded products and stock, but keeps users and orders. It
+creates the admin and customer accounts from your `.env` values.
 
-## Routes
-
-| Route | What it is |
-|---|---|
-| `/` | Storefront, hero and collection grid. `?kategori=baru\|batik\|kebaya` filters. |
-| `/produk/[slug]` | Product detail with size, quantity and add to cart. |
-| `/masuk` | Sign-in form, client-side validation only. |
-| `/try-on` | AI Virtual Try-On. Stub provider, no photo leaves the browser. |
-| `/chat` | Customer chat thread. Messages live in local state. |
-| `/admin` | Admin dashboard. `?view=ringkasan\|pesanan\|produk\|chat`. |
-
-## Where to plug the backend
-
-- `src/lib/mock/catalog.ts` -> replace with product API calls.
-- `src/lib/mock/inbox.ts` -> orders and chat threads.
-- `src/lib/api.ts` -> `requestTryOn`. Swap the stub for fal.ai IDM-VTON, Replicate,
-  or your own worker. Keep the return shape, the UI does not change.
-- `src/components/cart-provider.tsx` -> cart currently persists to localStorage.
-  Move it to server cart lines when auth exists.
-
-## Decisions
-
-- API: Django Ninja REST if Django is required; otherwise Next route handlers
-  plus Postgres. GraphQL is not used because there is one client and no
-  third-party consumers.
-- Auth: session cookies on the same origin. Proxy `/api` through Next.
-- Payments: Midtrans or Xendit for QRIS and virtual accounts.
-- Theme: fixed Warm Ivory. Tokens are in `src/app/globals.css`, rationale in
-  `DESIGN.md`.
-
-## Checks
+### 3. Run
 
 ```bash
+npm run dev                 # development, http://localhost:3000
+# or
 npm run build
-npm run lint
+npm start                   # production build
 ```
+
+For multi-instance deployments, mount a writable persistent volume at
+`DATA_DIR` (default `./.data`).
+
+## Environment variables
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` | yes | PostgreSQL connection string |
+| `APP_URL` | yes in production | Canonical origin for SEO and sitemap |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | seed only | Admin demo account |
+| `CUSTOMER_EMAIL`, `CUSTOMER_PASSWORD` | seed only | Customer demo account |
+| `HF_TOKEN` | no | Hugging Face token; raises the anonymous ZeroGPU quota |
+| `FASHN_SPACE_URL` | no | Defaults to the official v1.5 Space |
+| `FASHN_TIMEOUT_MS` | no | Queue + inference + download budget, default `100000` |
+| `DATA_DIR` | no | Upload/result directory, default `./.data` |
+| `POSTGRES_*` | Docker only | Credentials consumed by `compose.yml` |
+
+Never commit `.env`, `.data/`, tokens, or real passwords.
+
+## Project map
+
+```text
+prisma/schema.prisma                 users, products, orders, try-on jobs
+prisma/seed.ts                       idempotent demo catalog + accounts
+src/lib/tryon.ts                     FASHN Gradio adapter and error model
+src/app/api/try-on/route.ts          validation, rate limit, job lifecycle
+src/app/api/try-on/[id]/image/route.ts ownership-guarded result delivery
+src/components/try-on/try-on-studio.tsx  upload, picker, result UI
+src/app/api/profile/route.ts         profile update + account anonymization
+src/app/api/profile/password/route.ts password change
+src/app/api/products/image/route.ts  admin product image upload
+src/lib/storage.ts                   .data storage and path safety
+src/components/admin/product-form.tsx image upload + try-on photo type
+src/app/layout.tsx                   Inter font + global SEO metadata
+src/app/sitemap.ts, src/app/robots.ts SEO routes
+src/app/(store)/produk/[slug]/page.tsx product metadata + Product JSON-LD
+```
+
+### Main routes
+
+| Route | Purpose |
+|---|---|
+| `/` | Storefront and collection filter |
+| `/produk/[slug]` | Product detail with Product JSON-LD |
+| `/try-on` | FASHN virtual try-on studio (signed in) |
+| `/akun`, `/akun/profil` | Orders and profile CRUD |
+| `/checkout` | Order creation |
+| `/admin` | Admin dashboard (`?view=ringkasan\|pesanan\|produk\|chat`) |
+| `/admin/produk/baru`, `/admin/produk/[id]` | Product create/edit with upload |
+| `/api/try-on` | Real FASHN inference |
+| `/api/product-image/[name]` | Uploaded product image delivery |
+| `/sitemap.xml`, `/robots.txt` | SEO |
+
+## Privacy and security notes
+
+- Customer try-on photos are not persisted anywhere.
+- Generated results and payment proofs are stored on local disk and guarded by
+  session/ownership checks (or admin role).
+- Uploads are validated by MIME allowlist and size, stored under generated UUID
+  filenames, and never use a client-supplied path.
+- Admin image paths are generated by the server (`/api/product-image/<uuid>.<ext>`).
+- Sessions use random opaque tokens; only their SHA-256 hashes are stored.
+- Passwords use scrypt with a per-password salt.
+- Route handlers enforce same-origin checks for state-changing requests.
+- The try-on endpoint is limited to 10 requests per minute per user in memory.
+
+## Verification performed
+
+- `npx tsc --noEmit` — passes.
+- `npm run lint` — passes.
+- `npm run build` — passes.
+- Real FASHN inference through the app returned HTTP 200 in ~35.8 s and a
+  576×823 WebP result.
+- Playwright (Firefox) UI suite — **48 of 48 checks passed**, covering:
+  - Inter computed on body and headings.
+  - Meta description, canonical, OpenGraph, Twitter, WebSite/Product JSON-LD,
+    `robots.txt`, and `sitemap.xml`.
+  - Try-on CTA text, preview, replace/remove, type and size validation,
+    duplicate-submit guard, real result rendering, download header, retry, and
+    return to selection.
+  - Profile save/persist, password change and revert, clear address, clear phone.
+  - Admin product create with image upload, edit, and deactivate.
+  - Customer order creation, admin auto-refresh, order detail, and cancellation.
+
+## Known limits
+
+- The free Hugging Face Space can sleep or throttle; the UI reports this instead
+  of faking a result. `FASHN_TIMEOUT_MS` may need lowering to `55000` on hosts
+  with a 60-second request cap.
+- Payments are simulated. QRIS contains `BUKAN-PEMBAYARAN-NYATA`; bank transfer
+  uses a demo virtual account. An admin verifies proofs manually.
+- Chat is a local demo, clearly labeled `Contoh data`.
+- Rate limiting is in memory per process; a multi-instance deployment needs a
+  shared store.
+- Uploads and results need a persistent volume or object storage in production.
+- Auth is demo grade: no email verification, password reset, or MFA.

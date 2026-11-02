@@ -33,6 +33,12 @@ export default async function AccountPage() {
             </Link>
           ) : null}
           <Link
+            href="/akun/profil"
+            className={buttonStyles({ variant: "secondary" })}
+          >
+            Edit profil
+          </Link>
+          <Link
             href="/try-on"
             className={buttonStyles({ variant: "secondary" })}
           >

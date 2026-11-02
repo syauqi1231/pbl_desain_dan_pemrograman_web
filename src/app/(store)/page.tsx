@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
@@ -5,6 +6,11 @@ import { buttonStyles } from "@/components/ui/button";
 import { SectionLabel } from "@/components/ui/label";
 import { getCatalog, filterProducts } from "@/lib/catalog";
 import { collections } from "@/lib/collections";
+import { absoluteUrl } from "@/lib/seo";
+
+export const metadata: Metadata = {
+  alternates: { canonical: "/" },
+};
 
 export default async function StorefrontPage({
   searchParams,
@@ -19,8 +25,24 @@ export default async function StorefrontPage({
   const items = filterProducts(catalog, active.value);
   const isFiltered = active.value !== "semua";
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Nama Boutique",
+    url: absoluteUrl("/"),
+    description:
+      "Kebaya, batik, dan tenun pilihan dengan AI Virtual Try-On.",
+    inLanguage: "id-ID",
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <section className="mx-auto max-w-[1400px] px-5 pt-10 pb-16 sm:px-8 lg:px-10 lg:pt-16 lg:pb-24">
         <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-16">
           <div>

@@ -18,6 +18,61 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Masukkan kata sandi."),
 });
 
+export const profileUpdateSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Nama minimal 2 karakter.")
+    .max(80, "Nama maksimal 80 karakter."),
+  email: z.email("Masukkan alamat email yang valid."),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^[0-9+\-\s()]{8,20}$/, "Masukkan nomor telepon yang valid.")
+    .optional()
+    .or(z.literal("")),
+  addressLine: z
+    .string()
+    .trim()
+    .max(300, "Alamat maksimal 300 karakter.")
+    .optional()
+    .or(z.literal("")),
+  city: z
+    .string()
+    .trim()
+    .max(100, "Kota maksimal 100 karakter.")
+    .optional()
+    .or(z.literal("")),
+  postalCode: z
+    .string()
+    .trim()
+    .regex(/^[0-9]{5}$/, "Kode pos terdiri dari 5 angka.")
+    .optional()
+    .or(z.literal("")),
+});
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Masukkan kata sandi saat ini."),
+    newPassword: z
+      .string()
+      .min(8, "Kata sandi baru minimal 8 karakter.")
+      .max(200, "Kata sandi terlalu panjang."),
+    confirmPassword: z.string().min(1, "Ulangi kata sandi baru."),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Konfirmasi kata sandi tidak sama.",
+    path: ["confirmPassword"],
+  })
+  .refine((data) => data.newPassword !== data.currentPassword, {
+    message: "Kata sandi baru harus berbeda dari yang lama.",
+    path: ["newPassword"],
+  });
+
+export const deleteAccountSchema = z.object({
+  password: z.string().min(1, "Masukkan kata sandi untuk menghapus akun."),
+});
+
 const variantSchema = z.object({
   size: z
     .string()
@@ -84,6 +139,10 @@ export const productSchema = z.object({
   tryOnCategory: z
     .enum(["upper_body", "lower_body", "dresses"])
     .default("upper_body"),
+  tryOnPhotoType: z
+    .enum(["model", "flat-lay"])
+    .nullable()
+    .default(null),
   variants: z
     .array(variantSchema)
     .min(1, "Tambahkan minimal satu ukuran.")

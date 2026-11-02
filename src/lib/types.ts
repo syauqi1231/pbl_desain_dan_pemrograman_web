@@ -17,6 +17,7 @@ export type Product = {
   sizes: string[];
   stockBySize: Record<string, number>;
   tryOnCategory: string;
+  tryOnPhotoType: TryOnPhotoType | null;
   active: boolean;
 };
 
@@ -25,6 +26,10 @@ export type SessionUser = {
   name: string;
   email: string;
   role: "CUSTOMER" | "ADMIN";
+  phone: string | null;
+  addressLine: string | null;
+  city: string | null;
+  postalCode: string | null;
 };
 
 export type CartLine = {

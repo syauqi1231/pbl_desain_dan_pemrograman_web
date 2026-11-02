@@ -6,6 +6,7 @@ import { buttonStyles } from "@/components/ui/button";
 import { ProductMedia } from "@/components/ui/product-media";
 import { getProductBySlug } from "@/lib/catalog";
 import { formatIDR } from "@/lib/format";
+import { absoluteUrl } from "@/lib/seo";
 
 export async function generateMetadata({
   params,
@@ -14,7 +15,36 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductBySlug(slug);
-  return { title: product ? product.name : "Produk tidak ditemukan" };
+
+  if (!product) {
+    return {
+      title: "Produk tidak ditemukan",
+      robots: { index: false, follow: false },
+    };
+  }
+
+  const url = absoluteUrl(`/produk/${product.slug}`);
+  const description = `${product.description} Bahan ${product.material}.`;
+  const images = product.image ? [absoluteUrl(product.image)] : undefined;
+
+  return {
+    title: product.name,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      type: "website",
+      url,
+      title: product.name,
+      description,
+      images,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description,
+      images,
+    },
+  };
 }
 
 export default async function ProductPage({
@@ -26,8 +56,37 @@ export default async function ProductPage({
   const product = await getProductBySlug(slug);
   if (!product) notFound();
 
+  const productUrl = absoluteUrl(`/produk/${product.slug}`);
+  const inStock = Object.values(product.stockBySize).some((stock) => stock > 0);
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    sku: product.slug,
+    material: product.material,
+    brand: { "@type": "Brand", name: "Nama Boutique" },
+    ...(product.image ? { image: [absoluteUrl(product.image)] } : {}),
+    offers: {
+      "@type": "Offer",
+      url: productUrl,
+      priceCurrency: "IDR",
+      price: String(product.price),
+      itemCondition: "https://schema.org/NewCondition",
+      availability: inStock
+        ? "https://schema.org/InStock"
+        : "https://schema.org/OutOfStock",
+    },
+  };
+
   return (
     <div className="mx-auto max-w-[1400px] px-5 pt-8 pb-20 sm:px-8 lg:px-10 lg:pt-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <nav aria-label="Remah roti" className="text-sm text-espresso-500">
         <Link href="/" className="hover:text-clay-500">
           Koleksi

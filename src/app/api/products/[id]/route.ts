@@ -11,6 +11,7 @@ import {
 import { mapProduct, productWithVariants } from "@/lib/catalog";
 import { prisma } from "@/lib/db";
 import { toProductData } from "@/lib/product-input";
+import { deleteProductImage } from "@/lib/storage";
 import { productSchema } from "@/lib/validation";
 
 type Params = { params: Promise<{ id: string }> };
@@ -27,7 +28,7 @@ export async function PATCH(
     const body = parseWith(productSchema, await readJson(request));
     const current = await prisma.product.findUnique({
       where: { id },
-      select: { id: true },
+      select: { id: true, image: true },
     });
     if (!current) throw new ApiError(404, "Produk tidak ditemukan.");
 
@@ -53,6 +54,10 @@ export async function PATCH(
         include: productWithVariants,
       });
     });
+
+    if (current.image && current.image !== body.image) {
+      await deleteProductImage(current.image);
+    }
 
     return noStoreJson({ product: mapProduct(updated) });
   } catch (error) {

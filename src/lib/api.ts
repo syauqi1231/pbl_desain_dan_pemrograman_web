@@ -1,6 +1,6 @@
 export type TryOnJob = {
   id: string;
-  provider: "fal" | "stub";
+  provider: "fashn";
   note: string;
   imageUrl: string | null;
 };
@@ -21,8 +21,12 @@ export async function requestTryOn(input: {
   photo: File;
   productSlug: string;
 }): Promise<TryOnJob> {
-  if (!input.photo.type.startsWith("image/")) {
-    throw new TryOnError("File harus berupa gambar (JPG atau PNG).", 400);
+  if (
+    !["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
+      input.photo.type,
+    )
+  ) {
+    throw new TryOnError("Format foto harus JPG, PNG, atau WEBP.", 400);
   }
 
   if (input.photo.size > MAX_BYTES) {

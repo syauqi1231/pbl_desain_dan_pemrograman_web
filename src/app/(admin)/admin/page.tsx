@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAutoRefresh } from "@/components/admin/admin-auto-refresh";
 import { AdminOrdersTable } from "@/components/admin/orders-table";
 import { buttonStyles } from "@/components/ui/button";
 import { ProductMedia } from "@/components/ui/product-media";
@@ -8,6 +9,8 @@ import { getAdminCatalog } from "@/lib/catalog";
 import { formatIDR } from "@/lib/format";
 import { getAdminOrders, getAdminStats } from "@/lib/order-queries";
 import { chatThreads, unansweredCount } from "@/lib/mock/inbox";
+
+export const dynamic = "force-dynamic";
 
 const views = ["ringkasan", "pesanan", "produk", "chat"] as const;
 type ViewId = (typeof views)[number];
@@ -58,6 +61,9 @@ export default async function AdminPage({
 
   return (
     <>
+      {active === "ringkasan" || active === "pesanan" ? (
+        <AdminAutoRefresh />
+      ) : null}
       <p className="text-sm text-espresso-500">
         Selamat datang, {user.name.split(" ")[0]}
       </p>

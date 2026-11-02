@@ -40,10 +40,10 @@ export function CheckoutForm({ user }: { user: SessionUser }) {
   const { detailed, lines, subtotal, clear } = useCart();
 
   const [recipientName, setRecipientName] = useState(user.name);
-  const [phone, setPhone] = useState("");
-  const [addressLine, setAddressLine] = useState("");
-  const [city, setCity] = useState("");
-  const [postalCode, setPostalCode] = useState("");
+  const [phone, setPhone] = useState(user.phone ?? "");
+  const [addressLine, setAddressLine] = useState(user.addressLine ?? "");
+  const [city, setCity] = useState(user.city ?? "");
+  const [postalCode, setPostalCode] = useState(user.postalCode ?? "");
   const [note, setNote] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("QRIS");
   const [errors, setErrors] = useState<FieldErrors>({});

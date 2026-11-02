@@ -21,6 +21,7 @@ export function toProductData(
     image: body.image?.trim() || null,
     imageAlt: body.imageAlt?.trim() || null,
     tryOnCategory: body.tryOnCategory,
+    tryOnPhotoType: body.tryOnPhotoType ?? null,
     active: body.active,
     variants: {
       create: body.variants.map((variant, index) => ({

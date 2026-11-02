@@ -14,6 +14,7 @@ type SeedProduct = {
   image: string;
   imageAlt: string;
   tryOnCategory: "upper_body" | "lower_body" | "dresses";
+  tryOnPhotoType: "model" | "flat-lay" | null;
   variants: { size: string; stock: number }[];
 };
 
@@ -30,6 +31,7 @@ const products: SeedProduct[] = [
       "Potongan kebaya encim dengan lengan tiga per empat dan bukaan depan. Dijahit rapi dengan furing penuh agar nyaman dipakai seharian.",
     material: "Brokat tenun, furing katun",
     tryOnCategory: "upper_body",
+    tryOnPhotoType: "model",
     variants: [
       { size: "S", stock: 8 },
       { size: "M", stock: 10 },
@@ -49,6 +51,7 @@ const products: SeedProduct[] = [
       "Selendang batik tulis dengan motif kawung. Pewarna alami, tepi dijahit tangan.",
     material: "Katun primisima",
     tryOnCategory: "upper_body",
+    tryOnPhotoType: null,
     variants: [{ size: "All size", stock: 6 }],
   },
   {
@@ -63,6 +66,7 @@ const products: SeedProduct[] = [
       "Set atasan dan rok dari linen lurik. Siluet longgar, cocok untuk acara siang.",
     material: "Linen lurik",
     tryOnCategory: "dresses",
+    tryOnPhotoType: null,
     variants: [
       { size: "S", stock: 5 },
       { size: "M", stock: 6 },
@@ -81,6 +85,7 @@ const products: SeedProduct[] = [
       "Kebaya kutubaru dengan bef dan kancing tempel. Garis leher dibuat tangan.",
     material: "Brokat, furing sifon",
     tryOnCategory: "upper_body",
+    tryOnPhotoType: "model",
     variants: [
       { size: "S", stock: 6 },
       { size: "M", stock: 7 },
@@ -99,6 +104,7 @@ const products: SeedProduct[] = [
       "Blouse dari tenun ikat Sumba dengan potongan lurus dan lengan balon.",
     material: "Tenun ikat",
     tryOnCategory: "upper_body",
+    tryOnPhotoType: null,
     variants: [
       { size: "S", stock: 7 },
       { size: "M", stock: 5 },
@@ -117,6 +123,7 @@ const products: SeedProduct[] = [
       "Kain batik tulis motif parang. Satu lembar, satu warna, tidak ada duplikat.",
     material: "Katun primisima",
     tryOnCategory: "lower_body",
+    tryOnPhotoType: null,
     variants: [{ size: "2m x 1m", stock: 2 }],
   },
   {
@@ -131,6 +138,7 @@ const products: SeedProduct[] = [
       "Outer tanpa kancing dari tenun ikat. Dipakai terbuka di atas kebaya atau kaus.",
     material: "Tenun ikat, tanpa furing",
     tryOnCategory: "upper_body",
+    tryOnPhotoType: "model",
     variants: [{ size: "All size", stock: 4 }],
   },
   {
@@ -145,6 +153,7 @@ const products: SeedProduct[] = [
       "Kebaya brokat dengan bordir halus di bagian lengan dan ujung kebaya.",
     material: "Brokat bordir, furing satin",
     tryOnCategory: "upper_body",
+    tryOnPhotoType: "model",
     variants: [
       { size: "S", stock: 4 },
       { size: "M", stock: 5 },
@@ -156,11 +165,17 @@ const products: SeedProduct[] = [
 
 async function seedUsers() {
   const adminEmail = (process.env.ADMIN_EMAIL ?? "admin@boutique.local").toLowerCase();
-  const adminPassword = process.env.ADMIN_PASSWORD ?? "admin12345";
   const customerEmail = (
     process.env.CUSTOMER_EMAIL ?? "pelanggan@boutique.local"
   ).toLowerCase();
-  const customerPassword = process.env.CUSTOMER_PASSWORD ?? "pelanggan123";
+  const adminPassword = process.env.ADMIN_PASSWORD;
+  const customerPassword = process.env.CUSTOMER_PASSWORD;
+
+  if (!adminPassword || !customerPassword) {
+    throw new Error(
+      "Set ADMIN_PASSWORD and CUSTOMER_PASSWORD in .env before running the seed.",
+    );
+  }
 
   await prisma.user.upsert({
     where: { email: adminEmail },
@@ -210,6 +225,7 @@ async function main() {
       image: product.image,
       imageAlt: product.imageAlt,
       tryOnCategory: product.tryOnCategory,
+      tryOnPhotoType: product.tryOnPhotoType,
       active: true,
     };
 

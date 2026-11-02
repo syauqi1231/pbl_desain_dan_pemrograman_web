@@ -6,7 +6,8 @@ import { join } from "node:path";
 import { cache } from "react";
 import { isCollection } from "@/lib/collections";
 import { prisma } from "@/lib/db";
-import type { Collection, Product } from "@/lib/types";
+import { productImageExists } from "@/lib/storage";
+import type { Collection, Product, TryOnPhotoType } from "@/lib/types";
 
 // A path can be stored before the file exists (or point at a file that was
 // removed). Treat those as "no photo" so cards show the labelled placeholder
@@ -15,10 +16,17 @@ function usableImage(image: string | null): string | null {
   if (!image) return null;
   if (/^https?:\/\//.test(image) || image.startsWith("data:")) return image;
   if (!image.startsWith("/")) return null;
+  if (image.startsWith("/api/product-image/")) {
+    return productImageExists(image) ? image : null;
+  }
 
   return existsSync(join(process.cwd(), "public", image.slice(1)))
     ? image
     : null;
+}
+
+function usablePhotoType(value: string | null): TryOnPhotoType | null {
+  return value === "model" || value === "flat-lay" ? value : null;
 }
 
 export const productWithVariants = {
@@ -50,6 +58,7 @@ export function mapProduct(row: ProductRow): Product {
       row.variants.map((variant) => [variant.size, variant.stock]),
     ),
     tryOnCategory: row.tryOnCategory,
+    tryOnPhotoType: usablePhotoType(row.tryOnPhotoType),
     active: row.active,
   };
 }

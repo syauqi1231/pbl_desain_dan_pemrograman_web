@@ -1,8 +1,10 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
+
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, type FormEvent } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import type { Collection, Product } from "@/lib/types";
@@ -22,6 +24,8 @@ const categories = [
   { value: "lower_body", label: "Bawahan" },
   { value: "dresses", label: "Gaun / set" },
 ];
+
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export function ProductForm({
   mode,
@@ -46,6 +50,12 @@ export function ProductForm({
   const [tryOnCategory, setTryOnCategory] = useState(
     product?.tryOnCategory ?? "upper_body",
   );
+  const [tryOnPhotoType, setTryOnPhotoType] = useState(
+    product?.tryOnPhotoType ?? "",
+  );
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [active, setActive] = useState(product?.active ?? true);
   const [variants, setVariants] = useState<VariantRow[]>(
     product
@@ -73,6 +83,46 @@ export function ProductForm({
         rowIndex === index ? { ...row, ...patch } : row,
       ),
     );
+  }
+
+  async function uploadImage(file: File | undefined) {
+    if (!file) return;
+
+    setImageError(null);
+    if (!["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(file.type)) {
+      setImageError("Foto harus JPG, PNG, atau WEBP.");
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setImageError("Ukuran foto melebihi 5 MB.");
+      return;
+    }
+
+    const body = new FormData();
+    body.set("image", file);
+
+    setUploadingImage(true);
+    try {
+      const response = await fetch("/api/products/image", {
+        method: "POST",
+        body,
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        image?: string;
+        error?: string;
+      };
+
+      if (!response.ok || !data.image) {
+        setImageError(data.error ?? "Foto tidak bisa diunggah.");
+        return;
+      }
+
+      setImage(data.image);
+    } catch {
+      setImageError("Tidak bisa menghubungi server. Coba lagi.");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -116,6 +166,7 @@ export function ProductForm({
       image: image.trim(),
       imageAlt: imageAlt.trim(),
       tryOnCategory,
+      tryOnPhotoType: tryOnPhotoType || null,
       active,
       variants: variants.map((row) => ({
         size: row.size.trim(),
@@ -152,6 +203,7 @@ export function ProductForm({
           "image",
           "imageAlt",
           "tryOnCategory",
+          "tryOnPhotoType",
           "variants",
         ]) {
           if (details[key]?.[0]) mapped[key] = details[key][0];
@@ -280,6 +332,30 @@ export function ProductForm({
           </div>
 
           <div>
+            <label htmlFor="foto-tryon" className="block text-sm font-medium">
+              Foto untuk try-on
+            </label>
+            <select
+              id="foto-tryon"
+              value={tryOnPhotoType}
+              onChange={(event) => setTryOnPhotoType(event.target.value)}
+              className="mt-2 min-h-11 w-full rounded-full border border-line bg-ivory-50 px-5 text-sm"
+            >
+              <option value="">Tidak dipakai untuk try-on</option>
+              <option value="model">Model / manekin</option>
+              <option value="flat-lay">Flat-lay</option>
+            </select>
+            <p className="mt-2 text-xs text-espresso-500">
+              Pilih hanya jika foto menampilkan pakaian utuh, bukan detail kain.
+            </p>
+            {errors.tryOnPhotoType ? (
+              <p className="mt-2 text-xs text-clay-600">
+                {errors.tryOnPhotoType}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
             <label htmlFor="tone-produk" className="block text-sm font-medium">
               Warna latar kartu
             </label>
@@ -296,13 +372,71 @@ export function ProductForm({
             </select>
           </div>
 
-          <Field
-            label="Path foto"
-            value={image}
-            onChange={setImage}
-            error={errors.image}
-            hint="Contoh: /products/kebaya-encim-modern.jpg"
-          />
+          <div>
+            <label className="block text-sm font-medium">Foto produk</label>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              className="sr-only"
+              onChange={(event) => {
+                uploadImage(event.target.files?.[0]);
+                event.target.value = "";
+              }}
+            />
+            <div className="mt-2 rounded-2xl border border-dashed border-sand-500 p-3">
+              {image ? (
+                <img
+                  src={image}
+                  alt={imageAlt || "Pratinjau foto produk"}
+                  className="max-h-64 w-full rounded-xl object-cover"
+                />
+              ) : (
+                <div className="flex min-h-40 flex-col items-center justify-center px-4 text-center">
+                  <p className="text-sm font-medium">Belum ada foto</p>
+                  <p className="mt-1 text-xs text-espresso-500">
+                    Unggah foto produk dari perangkat kamu.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={uploadingImage}
+              >
+                {uploadingImage
+                  ? "Mengunggah..."
+                  : image
+                    ? "Ganti foto"
+                    : "Unggah foto"}
+              </Button>
+              {image ? (
+                <Button
+                  type="button"
+                  variant="quiet"
+                  onClick={() => {
+                    setImage("");
+                    setImageError(null);
+                  }}
+                  disabled={uploadingImage}
+                >
+                  Hapus foto
+                </Button>
+              ) : null}
+            </div>
+            <p className="mt-2 text-xs text-espresso-500">
+              JPG, PNG, atau WEBP. Maksimal 5 MB.
+            </p>
+            {imageError || errors.image ? (
+              <p className="mt-2 text-xs text-clay-600">
+                {imageError ?? errors.image}
+              </p>
+            ) : null}
+          </div>
+
           <Field
             label="Alt foto"
             value={imageAlt}

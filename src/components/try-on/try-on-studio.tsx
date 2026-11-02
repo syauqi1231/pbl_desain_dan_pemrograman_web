@@ -11,19 +11,27 @@ import { requestTryOn, type TryOnJob } from "@/lib/api";
 import type { Product } from "@/lib/types";
 
 const MAX_BYTES = 8 * 1024 * 1024;
+const ACCEPTED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
 
 type Status = "idle" | "processing" | "done";
+
+const categoryLabels: Record<string, string> = {
+  upper_body: "Atasan",
+  lower_body: "Bawahan",
+  dresses: "Gaun / one-piece",
+  tops: "Atasan",
+  bottoms: "Bawahan",
+  "one-pieces": "Gaun / one-piece",
+};
 
 export function TryOnStudio({
   initialSlug,
   garments,
   userName,
-  realProvider,
 }: {
   initialSlug: string;
   garments: Product[];
   userName: string;
-  realProvider: boolean;
 }) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
@@ -36,6 +44,8 @@ export function TryOnStudio({
   const [error, setError] = useState<string | null>(null);
   const [job, setJob] = useState<TryOnJob | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const selectionRef = useRef<HTMLFieldSetElement>(null);
+  const busyRef = useRef(false);
   const selectedGarment = garments.find((item) => item.slug === garment);
 
   useEffect(() => {
@@ -44,32 +54,58 @@ export function TryOnStudio({
     };
   }, [preview]);
 
-  function acceptFile(file: File | undefined) {
-    setError(null);
+  function resetResult() {
     setJob(null);
     setStatus("idle");
+  }
+
+  function acceptFile(file: File | undefined) {
+    setError(null);
+    resetResult();
     if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      setError("File harus berupa gambar (JPG atau PNG).");
+    if (!ACCEPTED_TYPES.includes(file.type)) {
+      setError("Format foto harus JPG, JPEG, PNG, atau WEBP.");
       return;
     }
     if (file.size > MAX_BYTES) {
       setError("Ukuran foto melebihi 8 MB. Coba foto lain.");
       return;
     }
+    if (file.size === 0) {
+      setError("File foto kosong. Pilih foto lain.");
+      return;
+    }
+
     setPhoto(file);
     setPreview(URL.createObjectURL(file));
   }
 
+  function removePhoto() {
+    setPhoto(null);
+    setPreview(null);
+    resetResult();
+    setError(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }
+
   async function run() {
+    if (busyRef.current) return;
+
     if (!photo) {
       setError("Unggah foto dulu sebelum mencoba.");
       return;
     }
+    if (!garment) {
+      setError("Pilih pakaian yang ingin dicoba.");
+      return;
+    }
 
+    busyRef.current = true;
     setError(null);
+    setJob(null);
     setStatus("processing");
+
     try {
       const result = await requestTryOn({ photo, productSlug: garment });
       setJob(result);
@@ -81,7 +117,15 @@ export function TryOnStudio({
           ? cause.message
           : "Try-on gagal. Coba lagi sebentar.",
       );
+    } finally {
+      busyRef.current = false;
     }
+  }
+
+  function backToSelection() {
+    resetResult();
+    setError(null);
+    selectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   return (
@@ -109,12 +153,16 @@ export function TryOnStudio({
         <h1 className="mt-1 font-display text-4xl leading-tight sm:text-5xl">
           AI Virtual Try-On
         </h1>
+        <p className="mt-3 max-w-xl text-sm text-espresso-500">
+          Unggah foto seluruh badan, pilih pakaian dari katalog, lalu lihat
+          hasilnya dengan FASHN VTON v1.5.
+        </p>
 
         <div className="mt-6 rounded-[var(--radius-card)] bg-ivory-50 p-4 sm:p-5">
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/jpeg,image/jpg,image/png,image/webp"
             className="sr-only"
             onChange={(event) => {
               acceptFile(event.target.files?.[0]);
@@ -136,18 +184,6 @@ export function TryOnStudio({
                   alt="Foto yang kamu unggah"
                   className="max-h-[420px] w-full object-cover"
                 />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPhoto(null);
-                    setPreview(null);
-                    setJob(null);
-                    setStatus("idle");
-                  }}
-                  className="absolute top-2 right-2 inline-flex min-h-11 items-center rounded-full bg-ivory-50/95 px-4 text-xs font-medium"
-                >
-                  Ganti foto
-                </button>
               </div>
             ) : (
               <button
@@ -157,25 +193,28 @@ export function TryOnStudio({
               >
                 <span className="text-lg font-medium">Unggah foto kamu</span>
                 <span className="mt-1 text-sm text-espresso-500">
-                  Foto seluruh badan, berdiri lurus.
+                  JPG, PNG, atau WEBP. Maksimal 8 MB.
+                </span>
+                <span className="mt-1 text-sm text-espresso-500">
+                  Foto seluruh badan, berdiri lurus, cahaya cukup.
                 </span>
               </button>
             )}
           </div>
 
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               className="inline-flex min-h-13 items-center justify-center rounded-full bg-espresso-900 px-6 text-sm font-medium text-ivory-50 transition-colors hover:bg-espresso-700"
             >
-              Pilih foto
+              {photo ? "Ganti foto" : "Pilih foto"}
             </button>
             <label className="inline-flex min-h-13 cursor-pointer items-center justify-center rounded-full border border-line bg-ivory-50 px-6 text-sm font-medium transition-colors hover:border-espresso-700 focus-within:outline-2 focus-within:outline-clay-500 focus-within:outline-offset-2">
               Ambil foto
               <input
                 type="file"
-                accept="image/*"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
                 capture="environment"
                 className="sr-only"
                 onChange={(event) => {
@@ -184,82 +223,130 @@ export function TryOnStudio({
                 }}
               />
             </label>
+            <button
+              type="button"
+              onClick={removePhoto}
+              disabled={!photo}
+              className="inline-flex min-h-13 items-center justify-center rounded-full border border-line bg-ivory-50 px-6 text-sm font-medium transition-colors hover:border-espresso-700 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Hapus foto
+            </button>
           </div>
         </div>
 
-        <fieldset className="mt-8">
+        <fieldset ref={selectionRef} className="mt-8 scroll-mt-6">
           <legend className="text-sm font-medium">Pilih pakaian</legend>
-          <div className="mt-3 grid grid-cols-3 gap-3">
-            {garments.map((item) => {
-              const selected = garment === item.slug;
-              return (
-                <label key={item.slug} className="block cursor-pointer rounded-2xl focus-within:outline-2 focus-within:outline-clay-500 focus-within:outline-offset-2">
-                  <input
-                    type="radio"
-                    name="pakaian"
-                    value={item.slug}
-                    checked={selected}
-                    onChange={() => setGarment(item.slug)}
-                    className="sr-only"
-                  />
-                  <span
-                    className={`block rounded-2xl border-2 p-1 transition-colors ${
-                      selected ? "border-clay-500" : "border-transparent"
-                    }`}
+          {garments.length === 0 ? (
+            <p className="mt-3 rounded-2xl border border-line bg-ivory-50 p-4 text-sm text-espresso-500">
+              Belum ada produk dengan foto yang siap dipakai try-on.
+            </p>
+          ) : (
+            <div className="mt-3 grid grid-cols-3 gap-3">
+              {garments.map((item) => {
+                const selected = garment === item.slug;
+                return (
+                  <label
+                    key={item.slug}
+                    className="block cursor-pointer rounded-2xl focus-within:outline-2 focus-within:outline-clay-500 focus-within:outline-offset-2"
                   >
-                    <ProductMedia
-                      product={item}
-                      showLabel={false}
-                      radius="rounded-xl"
-                      className="aspect-[3/4]"
+                    <input
+                      type="radio"
+                      name="pakaian"
+                      value={item.slug}
+                      checked={selected}
+                      onChange={() => {
+                        setGarment(item.slug);
+                        resetResult();
+                        setError(null);
+                      }}
+                      className="sr-only"
                     />
-                  </span>
-                  <span className="mt-2 block text-xs leading-snug">
-                    {item.name}
-                  </span>
-                </label>
-              );
-            })}
-          </div>
+                    <span
+                      className={`block rounded-2xl border-2 p-1 transition-colors ${
+                        selected ? "border-clay-500" : "border-transparent"
+                      }`}
+                    >
+                      <ProductMedia
+                        product={item}
+                        showLabel={false}
+                        radius="rounded-xl"
+                        className="aspect-[3/4]"
+                      />
+                    </span>
+                    <span className="mt-2 block text-xs leading-snug">
+                      {item.name}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          )}
         </fieldset>
+
+        {selectedGarment ? (
+          <div className="mt-5 flex items-center gap-4 rounded-2xl border border-line bg-ivory-50 p-3">
+            <div className="w-16 shrink-0">
+              <ProductMedia
+                product={selectedGarment}
+                showLabel={false}
+                radius="rounded-xl"
+                className="aspect-[3/4]"
+              />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs tracking-[0.12em] text-espresso-500 uppercase">
+                Pakaian dipilih
+              </p>
+              <p className="mt-1 font-medium">{selectedGarment.name}</p>
+              <p className="mt-1 text-xs text-espresso-500">
+                {categoryLabels[selectedGarment.tryOnCategory] ?? "Pakaian"} ·{" "}
+                {selectedGarment.tryOnPhotoType === "flat-lay"
+                  ? "Flat-lay"
+                  : "Model"}
+              </p>
+            </div>
+          </div>
+        ) : null}
 
         <div className="mt-8 rounded-[var(--radius-card)] bg-ivory-50 p-4">
           {status === "done" && job ? (
             <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
               {job.imageUrl ? (
-                <div className="relative w-full shrink-0 overflow-hidden rounded-xl sm:w-40">
+                <div className="relative w-full shrink-0 overflow-hidden rounded-xl sm:w-48">
                   <img
                     src={job.imageUrl}
                     alt={`Hasil try-on ${selectedGarment?.name ?? "pakaian pilihan"}`}
                     className="aspect-[3/4] w-full object-cover"
                   />
                 </div>
-              ) : preview ? (
-                <div className="relative w-full shrink-0 overflow-hidden rounded-xl sm:w-40">
-                  <img
-                    src={preview}
-                    alt="Pratinjau foto asli, belum ada hasil try-on"
-                    className="aspect-[3/4] w-full object-cover opacity-80"
-                  />
-                  <span className="absolute inset-x-2 bottom-2 rounded-full bg-espresso-900/90 px-2 py-1 text-center text-[10px] font-semibold tracking-[0.12em] text-ivory-50 uppercase">
-                    Stub
-                  </span>
-                </div>
               ) : null}
-              <div>
-                <p className="font-medium">
-                  {job.provider === "fal"
-                    ? "Hasil try-on"
-                    : "Belum ada hasil try-on"}
-                </p>
+              <div className="min-w-0">
+                <p className="font-medium">Hasil try-on</p>
                 <p className="mt-1 text-sm text-espresso-500">{job.note}</p>
-                <button
-                  type="button"
-                  onClick={run}
-                  className="mt-3 min-h-11 text-sm underline underline-offset-4 hover:text-clay-500"
-                >
-                  Jalankan lagi
-                </button>
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {job.imageUrl ? (
+                    <a
+                      href={`${job.imageUrl}?download=1`}
+                      className="inline-flex min-h-11 items-center justify-center rounded-full bg-espresso-900 px-5 text-sm font-medium text-ivory-50 transition-colors hover:bg-espresso-700"
+                    >
+                      Unduh hasil
+                    </a>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={run}
+                    className="min-h-11 rounded-full border border-line px-5 text-sm font-medium transition-colors hover:border-espresso-700"
+                  >
+                    Coba lagi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={backToSelection}
+                    className="min-h-11 rounded-full border border-line px-5 text-sm font-medium transition-colors hover:border-espresso-700"
+                  >
+                    Kembali ke pilihan
+                  </button>
+                </div>
               </div>
             </div>
           ) : status === "processing" ? (
@@ -269,9 +356,10 @@ export function TryOnStudio({
                 className="size-6 animate-spin rounded-full border-2 border-line border-t-clay-500"
               />
               <div>
-                <p className="font-medium">Menyiapkan hasil try-on</p>
+                <p className="font-medium">Memproses try-on</p>
                 <p role="status" className="text-sm text-espresso-500">
-                  Biasanya butuh beberapa detik.
+                  FASHN VTON v1.5 sedang bekerja. Antrean GPU gratis bisa
+                  memakan waktu sampai sekitar dua menit.
                 </p>
               </div>
             </div>
@@ -299,17 +387,20 @@ export function TryOnStudio({
           size="lg"
           className="mt-6 w-full"
           onClick={run}
-          disabled={status === "processing"}
+          disabled={status === "processing" || garments.length === 0}
         >
-          {status === "processing" ? "Memproses..." : "Jalankan try-on"}
+          {status === "processing"
+            ? "Memproses..."
+            : "Generate Virtual Try-On"}
         </Button>
 
         <div className="mt-6">
           <SectionLabel>Catatan</SectionLabel>
           <p className="mt-2 text-xs leading-relaxed text-espresso-500">
-            {realProvider
-              ? "Hasil dibuat oleh fal.ai IDM-VTON. Periksa proporsi, warna, dan detail kain sebelum memesan."
-              : "FAL_KEY belum diset, jadi try-on berjalan dalam mode demo. Foto tidak dikirim ke provider mana pun dan tidak ada hasil sungguhan."}
+            Foto kamu hanya dikirim ke Space FASHN VTON v1.5 di Hugging Face
+            untuk diproses dan tidak disimpan di server ini. Hasil AI bisa
+            berbeda dari warna dan bahan asli. Jika Space sedang tidur atau
+            antrean GPU penuh, coba lagi beberapa menit kemudian.
           </p>
         </div>
       </div>

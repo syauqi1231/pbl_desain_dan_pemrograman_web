@@ -7,10 +7,10 @@ This file records the direction. `src/app/globals.css` is the single source of t
 
 Storefront and back office for an Indonesian boutique selling kebaya, batik and tenun.
 Audience: shoppers who buy tailored pieces, and one shop admin running orders and chat from a phone.
-Visual language: warm editorial. Ivory paper, high-contrast serif, terracotta accent, generous whitespace.
+Visual language: warm editorial. Ivory paper, clear sans-serif type, terracotta accent, generous whitespace.
 Dial: **ENERGY 2 / RHYTHM 2 / MOTION 1**.
 
-- ENERGY 2: the serif headline and the large hero feel present, but nothing shouts.
+- ENERGY 2: the large headline and hero feel present, but nothing shouts.
 - RHYTHM 2: the storefront is one calm editorial block, then a product grid. The app screens change layout by task (studio, thread, dashboard), not by decoration.
 - MOTION 1: hover and focus transitions only. No scroll reveals, no floating elements.
 
@@ -38,8 +38,7 @@ Two core colours (ivory, espresso) plus one accent (clay). Sand and sage are rol
 
 ## Typography
 
-- Display: **Playfair Display**. Reason: the reference uses a high-contrast transitional serif with a tall x-height; Playfair matches the kebaya headline without drifting into script.
-- Body: **Plus Jakarta Sans**. Reason: neutral at small sizes, slightly warm, and designed in Indonesia, which fits the product rather than defaulting to Inter.
+- Display and body: **Inter**. Reason: standard e-commerce legibility at every size, consistent Latin and numeral shapes for prices/order numbers, and a neutral tone that lets the product photography carry the editorial feel. `--font-display` intentionally resolves to the same family; it is a semantic alias, not a second typeface.
 - Scale: hero `clamp(2.75rem, 5.6vw, 5.25rem)`, section title `clamp(1.9rem, 3vw, 2.75rem)`, body 1rem/1.65.
 - No monospace in UI copy. Labels are uppercase at `0.14em`, which is the reference's own treatment. Monospace appears only on the demo VA digits, where character alignment helps copying.
 
@@ -63,7 +62,7 @@ Reason: the ivory paper is the brand identity named in the chosen design, not a 
 - The shop name is the literal `[NAMA BOUTIQUE]` placeholder until the owner supplies one.
 - Customer names in the demo chat are `[Nama pelanggan]`. The seeded customer account is `Pelanggan Demo` so real personal data is never invented.
 - Admin numbers come from the database. With no orders, revenue shows `Rp 0` and the list shows an empty state. Demo chat is marked `Contoh data`.
-- AI Try-On calls fal.ai IDM-VTON when `FAL_KEY` is set. Without a key it runs in stub mode and says so in the UI; it never presents a stand-in image as a real try-on result.
+- AI Try-On calls the official **FASHN VTON v1.5** Hugging Face Space through its Gradio queue API. It never presents a stand-in image as a real try-on result. Customer photos are not stored; only the generated result is kept and shown to its owner.
 
 ## Accessibility
 

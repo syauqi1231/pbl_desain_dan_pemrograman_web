@@ -6,7 +6,7 @@ import { readStored } from "@/lib/storage";
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: Params,
 ): Promise<NextResponse> {
   try {
@@ -35,7 +35,10 @@ export async function GET(
       headers: {
         "Content-Type": type,
         "Cache-Control": "private, no-store",
-        "Content-Disposition": "inline",
+        "Content-Disposition":
+          new URL(request.url).searchParams.get("download") === "1"
+            ? `attachment; filename="fashn-try-on.${extension ?? "jpg"}"`
+            : "inline",
       },
     });
   } catch (error) {
