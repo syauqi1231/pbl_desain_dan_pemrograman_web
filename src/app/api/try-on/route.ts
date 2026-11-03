@@ -26,24 +26,24 @@ function providerFailure(error: unknown): ApiError {
     if (error.code === "timeout") {
       return new ApiError(
         504,
-        "Antrean GPU FASHN terlalu lama. Coba lagi beberapa menit lagi.",
+        "Proses try-on terlalu lama. Coba lagi beberapa menit lagi.",
       );
     }
     if (error.code === "rate-limit") {
       return new ApiError(
         429,
-        "Kuota gratis FASHN atau Hugging Face sedang penuh. Coba lagi nanti.",
+        "Permintaan try-on sedang padat. Coba lagi nanti.",
       );
     }
     if (error.code === "rejected") {
       return new ApiError(
         422,
-        "FASHN tidak bisa memproses foto atau pakaian ini. Coba foto lain yang seluruh badan terlihat.",
+        "Foto atau pakaian ini belum bisa diproses. Coba foto lain dengan seluruh badan terlihat.",
       );
     }
     return new ApiError(
       503,
-      "Layanan FASHN sedang tidak tersedia atau baru bangun dari mode tidur. Coba lagi.",
+      "Layanan try-on sedang tidak tersedia. Coba lagi nanti.",
     );
   }
 
@@ -99,7 +99,7 @@ export async function POST(request: Request): Promise<NextResponse> {
     if (!category) {
       throw new ApiError(
         400,
-        "Kategori produk ini belum didukung FASHN VTON v1.5.",
+        "Kategori produk ini belum bisa diproses untuk try-on. Pilih produk lain.",
       );
     }
     if (!isFashnPhotoType(product.tryOnPhotoType)) {
@@ -136,7 +136,7 @@ export async function POST(request: Request): Promise<NextResponse> {
           : "jpg";
       const resultPath = await saveBuffer(outcome.buffer, "results", extension);
       const note =
-        "Hasil dibuat oleh FASHN VTON v1.5 di Hugging Face. Periksa proporsi, warna, dan detail kain sebelum memesan.";
+        "Hasil ini adalah estimasi tampilan. Warna dan bahan dapat berbeda dari produk asli.";
 
       await prisma.tryOnJob.update({
         where: { id: job.id },

@@ -12,9 +12,21 @@ type ProfileUser = {
   addressLine: string | null;
   city: string | null;
   postalCode: string | null;
+  mapUrl: string | null;
+  addressNote: string | null;
 };
 
 type FieldErrors = Record<string, string | undefined>;
+
+function isValidMapUrl(value: string): boolean {
+  if (!value.trim()) return true;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
 
 export function ProfileForm({ user }: { user: ProfileUser }) {
   const router = useRouter();
@@ -24,6 +36,8 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
   const [addressLine, setAddressLine] = useState(user.addressLine ?? "");
   const [city, setCity] = useState(user.city ?? "");
   const [postalCode, setPostalCode] = useState(user.postalCode ?? "");
+  const [mapUrl, setMapUrl] = useState(user.mapUrl ?? "");
+  const [addressNote, setAddressNote] = useState(user.addressNote ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +47,8 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
     setAddressLine("");
     setCity("");
     setPostalCode("");
+    setMapUrl("");
+    setAddressNote("");
     setNotice("Alamat dikosongkan. Tekan Simpan profil untuk menerapkan.");
   }
 
@@ -49,6 +65,12 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
     }
     if (postalCode.trim() && !/^[0-9]{5}$/.test(postalCode.trim())) {
       local.postalCode = "Kode pos terdiri dari 5 angka.";
+    }
+    if (!isValidMapUrl(mapUrl)) {
+      local.mapUrl = "Masukkan tautan peta yang valid, diawali https://.";
+    }
+    if (addressNote.trim().length > 300) {
+      local.addressNote = "Deskripsi alamat maksimal 300 karakter.";
     }
 
     setErrors(local);
@@ -68,6 +90,8 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
           addressLine: addressLine.trim(),
           city: city.trim(),
           postalCode: postalCode.trim(),
+          mapUrl: mapUrl.trim(),
+          addressNote: addressNote.trim(),
         }),
       });
 
@@ -79,7 +103,16 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
       if (!response.ok) {
         const details = data.details ?? {};
         const mapped: FieldErrors = {};
-        for (const key of ["name", "email", "phone", "addressLine", "city", "postalCode"]) {
+        for (const key of [
+          "name",
+          "email",
+          "phone",
+          "addressLine",
+          "city",
+          "postalCode",
+          "mapUrl",
+          "addressNote",
+        ]) {
           if (details[key]?.[0]) mapped[key] = details[key][0];
         }
         setErrors(mapped);
@@ -165,6 +198,22 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
               autoComplete="postal-code"
             />
           </div>
+          <Field
+            label="Tautan peta rumah"
+            type="url"
+            value={mapUrl}
+            onChange={setMapUrl}
+            error={errors.mapUrl}
+            hint="Tempel tautan lokasi dari aplikasi peta."
+            autoComplete="url"
+          />
+          <Field
+            label="Deskripsi alamat (opsional)"
+            value={addressNote}
+            onChange={setAddressNote}
+            error={errors.addressNote}
+            hint="Patokan atau detail tambahan untuk kurir."
+          />
         </div>
       </div>
 

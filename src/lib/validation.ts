@@ -1,16 +1,46 @@
 import { z } from "zod";
 
+const phoneField = z
+  .string({ error: "Masukkan nomor telepon." })
+  .trim()
+  .regex(/^[0-9+\-\s()]{8,20}$/, "Masukkan nomor telepon yang valid.");
+
+const mapUrlField = z
+  .string({ error: "Masukkan tautan peta rumah." })
+  .trim()
+  .max(500, "Tautan peta maksimal 500 karakter.")
+  .pipe(z.url("Masukkan tautan peta yang valid, diawali https://."));
+
+const optionalMapUrlField = z
+  .union([z.literal(""), mapUrlField])
+  .optional();
+
+const addressNoteField = z
+  .string()
+  .trim()
+  .max(300, "Deskripsi alamat maksimal 300 karakter.")
+  .optional()
+  .or(z.literal(""));
+
 export const registerSchema = z.object({
   name: z
-    .string()
+    .string({ error: "Masukkan nama." })
     .trim()
     .min(2, "Nama minimal 2 karakter.")
     .max(80, "Nama maksimal 80 karakter."),
-  email: z.email("Masukkan alamat email yang valid."),
+  email: z.email({ error: "Masukkan alamat email yang valid." }),
   password: z
-    .string()
+    .string({ error: "Masukkan kata sandi." })
     .min(8, "Kata sandi minimal 8 karakter.")
     .max(200, "Kata sandi terlalu panjang."),
+  phone: phoneField,
+  addressLine: z
+    .string({ error: "Masukkan alamat." })
+    .trim()
+    .min(8, "Alamat minimal 8 karakter.")
+    .max(300, "Alamat maksimal 300 karakter."),
+  mapUrl: mapUrlField,
+  addressNote: addressNoteField,
 });
 
 export const loginSchema = z.object({
@@ -49,6 +79,8 @@ export const profileUpdateSchema = z.object({
     .regex(/^[0-9]{5}$/, "Kode pos terdiri dari 5 angka.")
     .optional()
     .or(z.literal("")),
+  mapUrl: optionalMapUrlField,
+  addressNote: addressNoteField,
 });
 
 export const passwordChangeSchema = z
@@ -198,4 +230,34 @@ export const orderActionSchema = z.object({
     "cancel",
   ]),
   note: z.string().trim().max(500, "Catatan maksimal 500 karakter.").optional(),
+});
+
+export const financeEntrySchema = z.object({
+  type: z.enum(["INCOME", "EXPENSE"], { error: "Pilih jenis catatan." }),
+  category: z
+    .string({ error: "Masukkan kategori." })
+    .trim()
+    .min(2, "Kategori minimal 2 karakter.")
+    .max(60, "Kategori maksimal 60 karakter."),
+  description: z
+    .string({ error: "Masukkan keterangan." })
+    .trim()
+    .min(3, "Keterangan minimal 3 karakter.")
+    .max(300, "Keterangan maksimal 300 karakter."),
+  amount: z.coerce
+    .number({ error: "Masukkan nominal dalam angka." })
+    .int("Nominal harus bilangan bulat.")
+    .min(1, "Nominal minimal Rp 1.")
+    .max(2_000_000_000, "Nominal maksimal Rp 2.000.000.000."),
+  occurredAt: z
+    .string({ error: "Pilih tanggal catatan." })
+    .trim()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Pilih tanggal catatan.")
+    .refine((value) => {
+      const parsed = new Date(`${value}T00:00:00.000Z`);
+      return (
+        !Number.isNaN(parsed.getTime()) &&
+        parsed.toISOString().slice(0, 10) === value
+      );
+    }, "Tanggal catatan tidak valid."),
 });

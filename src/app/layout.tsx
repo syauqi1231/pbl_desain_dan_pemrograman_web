@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Inter } from "next/font/google";
+import { Manrope } from "next/font/google";
 import { siteUrl } from "@/lib/seo";
 import "./globals.css";
 
-const body = Inter({
+const body = Manrope({
   variable: "--font-body",
   subsets: ["latin"],
   display: "swap",

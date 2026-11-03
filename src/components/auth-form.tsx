@@ -14,7 +14,22 @@ type FieldErrors = {
   name?: string;
   email?: string;
   password?: string;
+  phone?: string;
+  addressLine?: string;
+  mapUrl?: string;
+  addressNote?: string;
 };
+
+const PHONE_PATTERN = /^[0-9+\-\s()]{8,20}$/;
+
+function isValidMapUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
 
 const copy = {
   masuk: {
@@ -57,6 +72,10 @@ export function AuthForm({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [phone, setPhone] = useState("");
+  const [addressLine, setAddressLine] = useState("");
+  const [mapUrl, setMapUrl] = useState("");
+  const [addressNote, setAddressNote] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -75,6 +94,17 @@ export function AuthForm({
     if (mode === "masuk" && password.length === 0) {
       local.password = "Masukkan kata sandi.";
     }
+    if (mode === "daftar") {
+      if (!PHONE_PATTERN.test(phone.trim())) {
+        local.phone = "Masukkan nomor telepon yang valid.";
+      }
+      if (addressLine.trim().length < 8) {
+        local.addressLine = "Alamat minimal 8 karakter.";
+      }
+      if (!isValidMapUrl(mapUrl.trim())) {
+        local.mapUrl = "Masukkan tautan peta yang valid, diawali https://.";
+      }
+    }
 
     setErrors(local);
     setNotice(null);
@@ -88,7 +118,15 @@ export function AuthForm({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           mode === "daftar"
-            ? { name: name.trim(), email: email.trim(), password }
+            ? {
+                name: name.trim(),
+                email: email.trim(),
+                password,
+                phone: phone.trim(),
+                addressLine: addressLine.trim(),
+                mapUrl: mapUrl.trim(),
+                addressNote: addressNote.trim() || undefined,
+              }
             : { email: email.trim(), password },
         ),
       });
@@ -104,6 +142,10 @@ export function AuthForm({
         if (details.name?.[0]) mapped.name = details.name[0];
         if (details.email?.[0]) mapped.email = details.email[0];
         if (details.password?.[0]) mapped.password = details.password[0];
+        if (details.phone?.[0]) mapped.phone = details.phone[0];
+        if (details.addressLine?.[0]) mapped.addressLine = details.addressLine[0];
+        if (details.mapUrl?.[0]) mapped.mapUrl = details.mapUrl[0];
+        if (details.addressNote?.[0]) mapped.addressNote = details.addressNote[0];
         setErrors(mapped);
         setNotice(data.error ?? "Tidak bisa memproses permintaan. Coba lagi.");
         return;
@@ -154,6 +196,52 @@ export function AuthForm({
           autoComplete={mode === "daftar" ? "new-password" : "current-password"}
           required
         />
+        {mode === "daftar" ? (
+          <div className="space-y-5 border-t border-line pt-5">
+            <div>
+              <h2 className="font-display text-2xl">Alamat dan kontak</h2>
+              <p className="mt-1 text-sm text-espresso-500">
+                Disimpan untuk mengisi checkout berikutnya.
+              </p>
+            </div>
+            <Field
+              label="Nomor telepon"
+              type="tel"
+              value={phone}
+              onChange={setPhone}
+              error={errors.phone}
+              hint="Contoh: 081234567890."
+              autoComplete="tel"
+              required
+            />
+            <Field
+              label="Alamat"
+              value={addressLine}
+              onChange={setAddressLine}
+              error={errors.addressLine}
+              hint="Jalan, nomor rumah, RT/RW, kelurahan."
+              autoComplete="street-address"
+              required
+            />
+            <Field
+              label="Tautan peta rumah"
+              type="url"
+              value={mapUrl}
+              onChange={setMapUrl}
+              error={errors.mapUrl}
+              hint="Tempel tautan lokasi dari aplikasi peta."
+              autoComplete="url"
+              required
+            />
+            <Field
+              label="Deskripsi alamat (opsional)"
+              value={addressNote}
+              onChange={setAddressNote}
+              error={errors.addressNote}
+              hint="Patokan atau detail tambahan untuk kurir."
+            />
+          </div>
+        ) : null}
         <Button type="submit" size="lg" className="w-full" disabled={busy}>
           {busy ? text.busy : text.submit}
         </Button>

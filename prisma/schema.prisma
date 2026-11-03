@@ -50,21 +50,29 @@ enum TryOnStatus {
   FAILED
 }
 
+enum FinanceType {
+  INCOME
+  EXPENSE
+}
+
 model User {
-  id           String     @id @default(cuid())
-  email        String     @unique
-  name         String
-  passwordHash String
-  role         Role       @default(CUSTOMER)
-  phone        String?
-  addressLine  String?
-  city         String?
-  postalCode   String?
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  sessions     Session[]
-  orders       Order[]
-  tryOnJobs    TryOnJob[]
+  id             String         @id @default(cuid())
+  email          String         @unique
+  name           String
+  passwordHash   String
+  role           Role           @default(CUSTOMER)
+  phone          String?
+  addressLine    String?
+  city           String?
+  postalCode     String?
+  mapUrl         String?
+  addressNote    String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  sessions       Session[]
+  orders         Order[]
+  tryOnJobs      TryOnJob[]
+  financeEntries FinanceEntry[]
 }
 
 model Session {
@@ -165,6 +173,22 @@ model OrderItem {
   createdAt DateTime @default(now())
 
   @@index([orderId])
+}
+
+model FinanceEntry {
+  id          String      @id @default(cuid())
+  type        FinanceType
+  category    String
+  description String
+  amount      Int
+  occurredAt  DateTime
+  createdById String?
+  createdBy   User?       @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([occurredAt])
+  @@index([type])
 }
 
 model TryOnJob {

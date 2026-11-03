@@ -93,7 +93,7 @@ export function TryOnStudio({
     if (busyRef.current) return;
 
     if (!photo) {
-      setError("Unggah foto dulu sebelum mencoba.");
+      setError("Unggah foto sebelum mencoba.");
       return;
     }
     if (!garment) {
@@ -155,7 +155,7 @@ export function TryOnStudio({
         </h1>
         <p className="mt-3 max-w-xl text-sm text-espresso-500">
           Unggah foto seluruh badan, pilih pakaian dari katalog, lalu lihat
-          hasilnya dengan FASHN VTON v1.5.
+          estimasi tampilannya.
         </p>
 
         <div className="mt-6 rounded-[var(--radius-card)] bg-ivory-50 p-4 sm:p-5">
@@ -181,7 +181,7 @@ export function TryOnStudio({
               <div className="relative overflow-hidden rounded-xl bg-sand-200">
                 <img
                   src={preview}
-                  alt="Foto yang kamu unggah"
+                  alt="Foto yang Anda unggah"
                   className="max-h-[420px] w-full object-cover"
                 />
               </div>
@@ -191,7 +191,7 @@ export function TryOnStudio({
                 onClick={() => fileInputRef.current?.click()}
                 className="flex min-h-[240px] w-full flex-col items-center justify-center rounded-xl px-6 py-10 text-center"
               >
-                <span className="text-lg font-medium">Unggah foto kamu</span>
+                <span className="text-lg font-medium">Unggah foto Anda</span>
                 <span className="mt-1 text-sm text-espresso-500">
                   JPG, PNG, atau WEBP. Maksimal 8 MB.
                 </span>
@@ -356,10 +356,9 @@ export function TryOnStudio({
                 className="size-6 animate-spin rounded-full border-2 border-line border-t-clay-500"
               />
               <div>
-                <p className="font-medium">Memproses try-on</p>
+                <p className="font-medium">Membuat estimasi try-on</p>
                 <p role="status" className="text-sm text-espresso-500">
-                  FASHN VTON v1.5 sedang bekerja. Antrean GPU gratis bisa
-                  memakan waktu sampai sekitar dua menit.
+                  Proses ini dapat memakan waktu sampai sekitar dua menit.
                 </p>
               </div>
             </div>
@@ -367,7 +366,7 @@ export function TryOnStudio({
             <div className="flex items-center gap-4">
               <div className="size-16 shrink-0 rounded-xl bg-sand-200" />
               <p className="text-sm text-espresso-500">
-                Hasil try-on akan muncul di sini setelah kamu memilih foto dan
+                Hasil try-on akan muncul di sini setelah Anda memilih foto dan
                 pakaian.
               </p>
             </div>
@@ -397,10 +396,9 @@ export function TryOnStudio({
         <div className="mt-6">
           <SectionLabel>Catatan</SectionLabel>
           <p className="mt-2 text-xs leading-relaxed text-espresso-500">
-            Foto kamu hanya dikirim ke Space FASHN VTON v1.5 di Hugging Face
-            untuk diproses dan tidak disimpan di server ini. Hasil AI bisa
-            berbeda dari warna dan bahan asli. Jika Space sedang tidur atau
-            antrean GPU penuh, coba lagi beberapa menit kemudian.
+            Foto Anda hanya digunakan untuk membuat hasil try-on dan tidak
+            disimpan. Hasil try-on adalah estimasi, warna dan bahan dapat
+            berbeda dari produk asli.
           </p>
         </div>
       </div>

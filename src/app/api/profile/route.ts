@@ -46,6 +46,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
         addressLine: clean(body.addressLine),
         city: clean(body.city),
         postalCode: clean(body.postalCode),
+        mapUrl: clean(body.mapUrl),
+        addressNote: clean(body.addressNote),
       },
       select: {
         id: true,
@@ -56,6 +58,8 @@ export async function PATCH(request: Request): Promise<NextResponse> {
         addressLine: true,
         city: true,
         postalCode: true,
+        mapUrl: true,
+        addressNote: true,
       },
     });
 
@@ -98,6 +102,8 @@ export async function DELETE(request: Request): Promise<NextResponse> {
           addressLine: null,
           city: null,
           postalCode: null,
+          mapUrl: null,
+          addressNote: null,
         },
       }),
       prisma.session.deleteMany({ where: { userId: user.id } }),

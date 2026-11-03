@@ -30,6 +30,31 @@ export type SessionUser = {
   addressLine: string | null;
   city: string | null;
   postalCode: string | null;
+  mapUrl: string | null;
+  addressNote: string | null;
+};
+
+export type FinanceType = "INCOME" | "EXPENSE";
+
+export type FinanceEntryView = {
+  id: string;
+  type: FinanceType;
+  category: string;
+  description: string;
+  amount: number;
+  occurredAt: string;
+  createdByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type FinanceSummary = {
+  income: number;
+  expense: number;
+  balance: number;
+  orderRevenue: number;
+  orderCount: number;
+  entryCount: number;
 };
 
 export type CartLine = {

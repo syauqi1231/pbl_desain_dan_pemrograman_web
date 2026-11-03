@@ -32,8 +32,21 @@ export async function POST(request: Request): Promise<NextResponse> {
         email,
         name: body.name,
         passwordHash: await hashPassword(body.password),
+        phone: body.phone.trim(),
+        addressLine: body.addressLine.trim(),
+        mapUrl: body.mapUrl.trim(),
+        addressNote: body.addressNote?.trim() || null,
       },
-      select: { id: true, name: true, email: true, role: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        phone: true,
+        addressLine: true,
+        mapUrl: true,
+        addressNote: true,
+      },
     });
 
     await createSession(user.id);

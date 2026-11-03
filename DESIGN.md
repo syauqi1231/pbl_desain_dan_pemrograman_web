@@ -38,7 +38,7 @@ Two core colours (ivory, espresso) plus one accent (clay). Sand and sage are rol
 
 ## Typography
 
-- Display and body: **Inter**. Reason: standard e-commerce legibility at every size, consistent Latin and numeral shapes for prices/order numbers, and a neutral tone that lets the product photography carry the editorial feel. `--font-display` intentionally resolves to the same family; it is a semantic alias, not a second typeface.
+- Display and body: **Manrope**. Reason: a modern geometric sans with open apertures, clear numerals for prices and order totals, and a slightly warmer character than Inter, so it fits an Indonesian fashion shop without looking decorative. `--font-display` intentionally resolves to the same family; it is a semantic alias, not a second typeface.
 - Scale: hero `clamp(2.75rem, 5.6vw, 5.25rem)`, section title `clamp(1.9rem, 3vw, 2.75rem)`, body 1rem/1.65.
 - No monospace in UI copy. Labels are uppercase at `0.14em`, which is the reference's own treatment. Monospace appears only on the demo VA digits, where character alignment helps copying.
 

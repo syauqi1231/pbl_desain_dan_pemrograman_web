@@ -1,4 +1,4 @@
-# Boutique — Next.js, Prisma, and FASHN Virtual Try-On
+# Boutique: Next.js, Prisma, and FASHN Virtual Try-On
 
 A full-stack boutique demo for an Indonesian shop selling kebaya, batik, and
 tenun. The UI keeps the **Warm Ivory** visual direction. The app is in Indonesian
@@ -15,7 +15,7 @@ Hugging Face Space.
 | Validation | Zod 4 |
 | Auth | Opaque session cookies, SHA-256 token hashes, scrypt passwords |
 | Try-on | FASHN VTON v1.5 on Hugging Face (Gradio queue API, no local GPU) |
-| Fonts | Inter (single type family for display and body) |
+| Fonts | Manrope (single type family for display and body) |
 | SEO | Metadata API, JSON-LD, `robots.txt`, `sitemap.xml`, OpenGraph/Twitter |
 
 ## Features
@@ -26,9 +26,12 @@ Hugging Face Space.
   size/stock selection, cart, checkout, QRIS or bank-transfer payment, payment
   proof upload, and an order timeline.
 - Registration, login, logout, and session cookies.
-- **Profile CRUD** at `/akun/profil`: update name, email, phone, and shipping
-  address; clear the address; change password; delete the account.
-  Account deletion anonymizes the profile but keeps order history for the admin.
+- **Signup address details**: name, email, password, phone number, street
+  address, home map link, and an optional address description.
+- **Profile CRUD** at `/akun/profil`: update name, email, phone, shipping
+  address, home map link, and address description; clear the address; change
+  password; delete the account. Account deletion anonymizes the profile but
+  keeps order history for the admin.
 - Checkout prefills the saved phone and address.
 
 ### Admin back office
@@ -44,13 +47,17 @@ Hugging Face Space.
   when replaced.
 - Admin order/product pages refresh automatically so new customer orders appear
   without a manual reload.
+- **Financial recording** at `/admin/keuangan`: create, edit, and delete manual
+  income or expense entries with a category, description, amount, and date.
+  The page shows manual cash-flow totals, a manual balance, and verified order
+  revenue kept separate so the same sale is not counted twice.
 
 ### AI Virtual Try-On
 
 - The customer uploads a full-body photo (JPG/JPEG/PNG/WebP, max 8 MB), sees a
   preview, can replace or remove it, then picks an eligible catalog product.
 - The primary action is exactly **“Generate Virtual Try-On”**.
-- The result screen shows the generated image, the provider note, retry,
+- The result screen shows the generated image, an estimation note, retry,
   download, and return-to-selection controls. Errors are specific and readable.
 - Duplicate submissions are blocked on the client and rate-limited on the server.
 
@@ -154,7 +161,7 @@ Never commit `.env`, `.data/`, tokens, or real passwords.
 ## Project map
 
 ```text
-prisma/schema.prisma                 users, products, orders, try-on jobs
+prisma/schema.prisma                 users, products, orders, finance, try-on jobs
 prisma/seed.ts                       idempotent demo catalog + accounts
 src/lib/tryon.ts                     FASHN Gradio adapter and error model
 src/app/api/try-on/route.ts          validation, rate limit, job lifecycle
@@ -165,7 +172,11 @@ src/app/api/profile/password/route.ts password change
 src/app/api/products/image/route.ts  admin product image upload
 src/lib/storage.ts                   .data storage and path safety
 src/components/admin/product-form.tsx image upload + try-on photo type
-src/app/layout.tsx                   Inter font + global SEO metadata
+src/lib/finance.ts                   finance queries and money summary
+src/app/api/admin/finance/route.ts   admin finance list/create API
+src/app/api/admin/finance/[id]/route.ts admin finance update/delete API
+src/components/admin/finance-manager.tsx admin finance forms and ledger
+src/app/layout.tsx                   Manrope font + global SEO metadata
 src/app/sitemap.ts, src/app/robots.ts SEO routes
 src/app/(store)/produk/[slug]/page.tsx product metadata + Product JSON-LD
 ```
@@ -180,7 +191,9 @@ src/app/(store)/produk/[slug]/page.tsx product metadata + Product JSON-LD
 | `/akun`, `/akun/profil` | Orders and profile CRUD |
 | `/checkout` | Order creation |
 | `/admin` | Admin dashboard (`?view=ringkasan\|pesanan\|produk\|chat`) |
+| `/admin/keuangan` | Admin financial recording and summary |
 | `/admin/produk/baru`, `/admin/produk/[id]` | Product create/edit with upload |
+| `/api/admin/finance`, `/api/admin/finance/[id]` | Admin finance CRUD |
 | `/api/try-on` | Real FASHN inference |
 | `/api/product-image/[name]` | Uploaded product image delivery |
 | `/sitemap.xml`, `/robots.txt` | SEO |
@@ -200,21 +213,22 @@ src/app/(store)/produk/[slug]/page.tsx product metadata + Product JSON-LD
 
 ## Verification performed
 
-- `npx tsc --noEmit` — passes.
-- `npm run lint` — passes.
-- `npm run build` — passes.
+- `npx tsc --noEmit` passes.
+- `npm run lint` passes.
+- `npm run build` passes.
 - Real FASHN inference through the app returned HTTP 200 in ~35.8 s and a
   576×823 WebP result.
-- Playwright (Firefox) UI suite — **48 of 48 checks passed**, covering:
-  - Inter computed on body and headings.
-  - Meta description, canonical, OpenGraph, Twitter, WebSite/Product JSON-LD,
-    `robots.txt`, and `sitemap.xml`.
-  - Try-on CTA text, preview, replace/remove, type and size validation,
-    duplicate-submit guard, real result rendering, download header, retry, and
-    return to selection.
-  - Profile save/persist, password change and revert, clear address, clear phone.
-  - Admin product create with image upload, edit, and deactivate.
-  - Customer order creation, admin auto-refresh, order detail, and cancellation.
+- The earlier storefront suite passed 48 of 48 checks, covering SEO, try-on,
+  profile CRUD, admin product CRUD, and admin order auto-refresh.
+- The current regression suite passed 29 of 29 checks, covering:
+  - Manrope computed on body and headings.
+  - Signup phone, address, map link, and optional address note fields, including
+    invalid map validation and saved data on the profile page.
+  - Admin finance create, edit, delete, summary update, reload, empty state, and
+    invalid amount rejection.
+  - Try-on customer copy free of provider, GPU, queue, and server terms, with the
+    exact photo handling sentence and estimation wording.
+  - No horizontal overflow on the signup and finance pages at 390 px.
 
 ## Known limits
 

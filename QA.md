@@ -1,7 +1,6 @@
 # QA record
 
-Last run: **2026-11-03** against the production build (`next start`) on
-`http://localhost:3000`.
+Last run: **2026-11-04** against the local app on `http://localhost:3000`.
 
 Environment:
 
@@ -17,82 +16,79 @@ Environment:
 | TypeScript | `npx tsc --noEmit` | PASS, no errors |
 | Lint | `npm run lint` | PASS, no warnings |
 | Production build | `npm run build` | PASS |
-| Playwright UI/SEO/order suite | `node /tmp/opencode/pw/verify.mjs` | **48 of 48 checks PASS** |
-| Real FASHN inference (direct Space call) | manual API check | HTTP 200, real result |
-| Real FASHN inference (through app API) | `POST /api/try-on` | HTTP 200 in 35.8 s, 576×823 WebP |
+| Targeted UI suite | `node /tmp/opencode/pw/verify.mjs` | **29 of 29 checks PASS** |
+| Finance API CRUD | `curl` against `/api/admin/finance` | PASS: 201 create, 200 update, 200 delete |
+| Signup field validation | `curl` against `/api/auth/register` | PASS: 400 missing or invalid map, 201 valid |
+| Customer finance access | `GET /api/admin/finance` | PASS: 403 for customer |
+| Browser console | Playwright error listener | PASS: no errors |
 
 Server logs were checked after the run: no application errors.
 
-## What the 48 checks cover
+## Current regression suite (29 checks)
 
-### Typography and SEO (17 checks)
+### Typography and signup (11 checks)
 
-- Computed `font-family` on `body` and headings is Inter, including the
-  `--font-display` alias.
-- Home page: title, meta description, canonical, OpenGraph title/image, Twitter
-  card, and `WebSite` JSON-LD.
-- Product page: title, canonical, meta description, and `Product` JSON-LD with
-  IDR price and in-stock availability.
-- `/robots.txt`: 200, disallows `/admin` and `/api/`, references `/sitemap.xml`.
-- `/sitemap.xml`: 200 and includes active product URLs.
+- Computed `font-family` on `body` and headings is Manrope.
+- The signup page shows phone, address, home map link, and optional address
+  description fields.
+- An invalid map link shows the Indonesian validation message and stays on the
+  page.
+- A valid registration redirects to `/akun`.
+- Phone, map link, and address description persist on `/akun/profil` after
+  reload.
+- The signup page has no horizontal overflow at 390 px.
 
-### Try-on UI (15 checks)
+### Admin finance CRUD (12 checks)
 
-- The CTA text is exactly **“Generate Virtual Try-On”**.
-- Copy lists JPG/PNG/WEBP and the 8 MB limit.
-- File selection shows a preview and a “Ganti foto” control.
-- “Hapus foto” restores the upload prompt.
-- A text file is rejected with the format error.
-- A 9 MB PNG is rejected with the size error.
-- Two synchronous clicks produce exactly one request (duplicate-submit guard).
-- The real stored result image renders at 576×823.
-- The provider note names FASHN VTON v1.5.
-- The download link is `/api/try-on/<id>/image?download=1` and the response is
-  `Content-Disposition: attachment; filename="fashn-try-on.webp"`.
-- Retry and “Kembali ke pilihan” controls are present, and returning hides the
-  result.
+- Admin login succeeds and the Keuangan navigation item is visible.
+- The empty state renders when there are no entries.
+- An invalid amount (`0`) is rejected by the API with `400`.
+- Creating an expense adds the row and updates the expense summary.
+- Editing the row updates the description and amount in the list and summary.
+- Reloading keeps the saved row.
+- Deleting the row returns the page to the empty state.
+- The finance page has no horizontal overflow at 390 px and exposes the mobile
+  admin navigation.
 
-### Profile CRUD (7 checks)
+### Try-on copy (4 checks)
 
-- Profile page loads at `/akun/profil`.
-- Name/phone/address/city/postal code save and persist across reload.
-- Password change succeeds, then is reverted to the original password.
-- Address can be cleared.
-- Phone can be cleared.
+- Customer copy contains no FASHN, Hugging Face, GPU, queue, or server wording.
+- The exact photo sentence is present: “Foto Anda hanya digunakan untuk membuat
+  hasil try-on dan tidak disimpan.”
+- The result copy uses estimation wording.
+- No browser console errors were recorded across the whole run.
 
-### Admin product CRUD (5 checks)
+## API and security checks performed separately
 
-- Admin dashboard loads.
-- Product image upload shows a preview before saving.
-- A new product created through the upload form appears in the admin list.
-- Editing the product name updates the list.
-- Unchecking “Tampilkan produk di toko” shows “Tidak aktif” (soft removal).
+- Registration without `mapUrl`: `400` with `Masukkan tautan peta rumah.`
+- Registration with `mapUrl: "bukan-link"`: `400` with the map validation message.
+- Registration with all fields: `201`, and `/api/auth/me` returns the saved
+  phone, address, map link, and address note.
+- Profile update with map link and address note: `200`, values persist.
+- Finance list/create/update/delete as admin: `200/201/200/200`.
+- Finance list as a customer: `403`.
+- Finance create with amount `0`: `400`.
+- Finance entry creation also checks the session, same-origin header, and a
+  per-admin rate limit.
 
-### Admin order visibility (4 checks)
+After the run, the temporary finance entry and the Playwright registration were
+removed. Existing products and orders were left untouched.
 
-- A customer order is created through the API (`201`).
-- The order number appears in the admin order list **without a manual reload**
-  in ~19.9 s (auto-refresh interval is 20 s).
-- The admin order detail shows the customer and item; the admin can cancel it
-  (`200`, status `CANCELLED`).
+## Previous baseline (2026-11-03)
 
-## API and ownership checks performed separately
-
-- Real try-on through the app returned HTTP 200 and a valid WebP.
-- Own result: HTTP 200 with `Cache-Control: private, no-store`.
-- Download request: `Content-Disposition: attachment`.
-- Anonymous result request: HTTP 401.
-- Different signed-in user: HTTP 404.
-- Invalid file type: HTTP 400 with a clear format error.
-- Product without a try-on photo: HTTP 400 with a clear eligibility error.
-- Missing photo: HTTP 400.
-- Profile update, password change/revert, and address clearing: HTTP 200.
-- Product image upload and fetch: HTTP 201/200 with `image/jpeg`.
-- Product create/update/deactivate and cleanup: HTTP 201/200/200.
-
-After the run, the temporary Playwright product, its uploaded image, and the
-temporary order were deleted. The database was left at 9 products and the
-pre-existing orders; the customer profile was restored (phone and address empty).
+- Playwright Firefox suite: **48 of 48 checks passed**, covering:
+  - Meta description, canonical, OpenGraph, Twitter, WebSite/Product JSON-LD,
+    `robots.txt`, and `sitemap.xml`.
+  - Try-on CTA text, preview, replace/remove, type and size validation,
+    duplicate-submit guard, real result rendering, download header, retry, and
+    return to selection.
+  - Profile save/persist, password change and revert, clear address, clear phone.
+  - Admin product create with image upload, edit, and deactivate.
+  - Customer order creation, admin auto-refresh, order detail, and cancellation.
+- Real FASHN inference through the app returned HTTP 200 in 35.8 s and a
+  576×823 WebP result.
+- Anonymous result request returned `401`; a different signed-in user received
+  `404`; download responses used `Content-Disposition: attachment`.
 
 ## Data lifecycle
 
@@ -101,6 +97,7 @@ pre-existing orders; the customer profile was restored (phone and address empty)
 - Payment proofs live under `.data/proofs/` and are owner/admin-guarded.
 - Admin product images live under `.data/products/` and are public by design
   (they are catalog photos).
+- Finance entries are stored in PostgreSQL and are visible only to admins.
 - `.data/` and `.env` are git-ignored and are not committed.
 
 ## Known limits
@@ -128,5 +125,4 @@ npm start
 ```
 
 The Playwright suite is a local QA artifact and is not committed. It expects the
-server on `http://localhost:3000`, the demo accounts from `.env`, and the two
-official FASHN example images (a full-body person photo and a garment photo).
+server on `http://localhost:3000` and the demo accounts from `.env`.

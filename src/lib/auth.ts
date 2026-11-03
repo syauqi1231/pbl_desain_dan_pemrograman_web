@@ -34,6 +34,8 @@ export const getCurrentUser = cache(async (): Promise<SessionUser | null> => {
           addressLine: true,
           city: true,
           postalCode: true,
+          mapUrl: true,
+          addressNote: true,
         },
       },
     },

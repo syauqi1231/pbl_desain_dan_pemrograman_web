@@ -23,6 +23,8 @@ export default async function ProfilePage() {
       addressLine: true,
       city: true,
       postalCode: true,
+      mapUrl: true,
+      addressNote: true,
       role: true,
     },
   });

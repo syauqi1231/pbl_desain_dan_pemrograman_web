@@ -7,6 +7,7 @@ const items = [
   { id: "ringkasan", label: "Ringkasan", href: "/admin" },
   { id: "pesanan", label: "Pesanan", href: "/admin?view=pesanan" },
   { id: "produk", label: "Produk", href: "/admin?view=produk" },
+  { id: "keuangan", label: "Keuangan", href: "/admin/keuangan" },
   { id: "chat", label: "Chat", href: "/admin?view=chat" },
 ] as const;
 
@@ -18,6 +19,7 @@ export function AdminNav({ variant }: { variant: "sidebar" | "mobile" }) {
   function isActive(id: (typeof items)[number]["id"]): boolean {
     if (pathname.startsWith("/admin/pesanan")) return id === "pesanan";
     if (pathname.startsWith("/admin/produk")) return id === "produk";
+    if (pathname.startsWith("/admin/keuangan")) return id === "keuangan";
     return pathname === "/admin" && view === id;
   }
 
