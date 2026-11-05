@@ -60,7 +60,7 @@ export default async function ProfilePage({
           role="status"
           className="mt-5 rounded-2xl border border-sage-700 bg-ivory-50 p-4 text-sm text-sage-700"
         >
-          Lengkapi nomor telepon dan alamat pengiriman sebelum checkout.
+          Isi nomor telepon dan alamat pengiriman dulu sebelum checkout.
         </p>
       ) : null}
 
@@ -71,7 +71,7 @@ export default async function ProfilePage({
       <section className="mt-8 rounded-[var(--radius-card)] border border-line bg-ivory-50 p-5 sm:p-6">
         <h2 className="font-display text-2xl">Ubah kata sandi</h2>
         <p className="mt-1 text-sm text-espresso-500">
-          Gunakan kata sandi yang kuat dan tidak dipakai di situs lain.
+          Pakai kata sandi yang kuat dan jangan sama dengan situs lain.
         </p>
         <div className="mt-5">
           <PasswordForm />

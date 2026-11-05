@@ -50,8 +50,8 @@ Hugging Face Space.
   single or couple category, price, best seller, and new product.
 - **Product filters** on `/admin?view=produk`: size, single or couple, price
   range, best seller, and new product.
-- **Site image management** at `/admin/gambar`: replace the homepage hero and
-  story photos, or restore the bundled defaults.
+- **Site image management** at `/admin/gambar`: replace the three rotating
+  homepage photos and the story photo, or restore the bundled defaults.
 - Product and site photos are validated (JPG/PNG/WebP, max 5 MB), stored under
   `.data/products/`, served through `/api/product-image/[name]`, and deleted
   when replaced.
@@ -232,15 +232,18 @@ src/app/(store)/produk/[slug]/page.tsx product metadata + Product JSON-LD
   576×823 WebP result.
 - The earlier storefront suite passed 48 of 48 checks, covering SEO, try-on,
   profile CRUD, admin product CRUD, and admin order auto-refresh.
-- The current regression suite passed 32 of 32 checks, covering:
+- The current regression suite passed 35 of 35 checks, covering:
   - Manrope computed on body and headings, plus the Boutique NC branding.
+  - Hero slideshow with three rotating photos, dot controls, and a pause
+    button.
   - Signup with the OpenStreetMap preview, address lookup, generated map link,
     phone, address, and optional address description. No map URL input remains.
   - Shopper filters for size, single or couple, price, best seller, and new
     product.
   - Admin product filters for size, single or couple, price, best seller, and
     new product, including the empty state.
-  - Admin site image upload, storefront update, and reset to the default.
+  - Admin site image upload, rotating homepage photos, and reset to the
+    default.
 
 ## Map setup
 

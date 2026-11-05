@@ -24,8 +24,8 @@ export function SiteFooter() {
               Boutique NC
             </p>
             <p className="mt-4 max-w-sm text-sm leading-relaxed text-ivory-100/65">
-              Kebaya, batik, dan tenun pilihan. Dibuat dalam jumlah kecil,
-              dijahit rapi, untuk dipakai lama.
+              Kebaya, batik, dan tenun dari perajin lokal. Dibuat sedikit,
+              dijahit rapi, dan enak dipakai lama.
             </p>
           </div>
 
@@ -68,7 +68,7 @@ export function SiteFooter() {
 
         <div className="mt-14 flex flex-col gap-3 border-t border-ivory-50/15 pt-6 text-xs text-ivory-100/45 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Boutique NC.</p>
-          <p>Data produk pada demo ini adalah contoh.</p>
+          <p>Data produk di demo ini cuma contoh.</p>
         </div>
       </div>
     </footer>

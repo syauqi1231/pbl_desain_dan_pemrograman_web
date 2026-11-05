@@ -10,10 +10,24 @@ import type { SiteImage } from "@/lib/types";
 export const siteImageSlots = [
   {
     key: "hero",
-    label: "Gambar utama beranda",
-    description: "Tampil besar di bagian paling atas beranda.",
+    label: "Foto beranda 1",
+    description: "Tampil pertama saat beranda dibuka.",
     fallback: "/hero-kebaya.jpg",
     fallbackAlt: "Model memakai kebaya dengan kain batik",
+  },
+  {
+    key: "hero-2",
+    label: "Foto beranda 2",
+    description: "Muncul bergantian setelah foto pertama.",
+    fallback: "/products/kebaya-kutubaru.jpg",
+    fallbackAlt: "Detail kebaya merah dengan hiasan emas",
+  },
+  {
+    key: "hero-3",
+    label: "Foto beranda 3",
+    description: "Terakhir, sebelum kembali ke foto pertama.",
+    fallback: "/artisan-batik.jpg",
+    fallbackAlt: "Perajin sedang mengerjakan kain batik",
   },
   {
     key: "story",

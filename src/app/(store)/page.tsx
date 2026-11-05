@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { CatalogFilters } from "@/components/catalog-filters";
+import { HeroSlideshow } from "@/components/hero-slideshow";
 import { ProductCard } from "@/components/product-card";
 import { buttonStyles } from "@/components/ui/button";
 import { SectionLabel } from "@/components/ui/label";
@@ -64,7 +65,12 @@ export default async function StorefrontPage({
   if (active.value !== "semua") resetQuery.set("kategori", active.value);
   const resetSuffix = resetQuery.toString();
   const resetHref = `/${resetSuffix ? `?${resetSuffix}` : ""}#koleksi`;
-  const hero = siteImages.find((image) => image.key === "hero");
+  const heroSlides = siteImages
+    .filter((image) => image.key.startsWith("hero"))
+    .map((image) => ({
+      image: image.image,
+      alt: image.imageAlt ?? "Koleksi Boutique NC",
+    }));
   const story = siteImages.find((image) => image.key === "story");
 
   const jsonLd = {
@@ -88,16 +94,7 @@ export default async function StorefrontPage({
 
       <section className="px-3 pt-3 sm:px-5 lg:px-6">
         <div className="relative isolate mx-auto min-h-[70svh] max-w-[1540px] overflow-hidden rounded-[1.75rem] bg-sand-300 sm:min-h-[600px] lg:min-h-[700px]">
-          {hero ? (
-            <Image
-              src={hero.image}
-              alt={hero.imageAlt ?? "Koleksi Boutique NC"}
-              fill
-              priority
-              sizes="100vw"
-              className="object-cover object-center"
-            />
-          ) : null}
+          <HeroSlideshow slides={heroSlides} />
           <div
             aria-hidden="true"
             className="absolute inset-0 bg-gradient-to-r from-espresso-900/85 via-espresso-900/45 to-espresso-900/10"
@@ -113,11 +110,11 @@ export default async function StorefrontPage({
                 Koleksi {new Date().getFullYear()}
               </p>
               <h1 className="mt-4 font-display text-[clamp(2.75rem,6.4vw,5.6rem)] leading-[0.94] tracking-[-0.035em] text-balance">
-                Kebaya yang mengikuti harimu.
+                Kebaya buat harimu.
               </h1>
               <p className="mt-5 max-w-lg text-sm leading-relaxed text-ivory-100/85 sm:text-base">
-                Batik, tenun, dan kebaya pilihan dari perajin lokal. Dijahit
-                rapi, dengan ukuran yang bisa kamu coba dulu lewat AI Try-On.
+                Batik, tenun, dan kebaya dari perajin lokal. Jahitannya rapi,
+                dan kamu bisa coba dulu lewat AI Try-On sebelum beli.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Link
@@ -136,9 +133,9 @@ export default async function StorefrontPage({
             </div>
 
             <div className="mt-10 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-ivory-50/25 pt-5 text-[10px] font-semibold tracking-[0.18em] text-ivory-100/70 uppercase sm:text-[11px]">
-              <span>Jahitan terbatas</span>
-              <span>Bahan alami</span>
-              <span>Try-on sebelum beli</span>
+              <span>Jumlahnya terbatas</span>
+              <span>Bahan nyaman</span>
+              <span>Coba dulu, baru beli</span>
             </div>
           </div>
         </div>
@@ -155,10 +152,10 @@ export default async function StorefrontPage({
                 ? "Hasil filter"
                 : isFiltered
                   ? `Kategori ${active.label}`
-                  : "Pilihan toko"}
+                  : "Pilihan kami"}
             </SectionLabel>
             <h2 className="mt-2 font-display text-[clamp(2rem,3.6vw,3.25rem)] leading-[1.02] tracking-[-0.02em]">
-              Koleksi pilihan
+              Yang lagi kami suka
             </h2>
           </div>
 
@@ -224,7 +221,7 @@ export default async function StorefrontPage({
           <div>
             <SectionLabel>Coba dulu</SectionLabel>
             <h2 className="mt-3 max-w-xl font-display text-[clamp(1.9rem,3.4vw,3rem)] leading-[1.04] tracking-[-0.02em]">
-              Lihat kebaya di tubuhmu sebelum memesan.
+              Coba kebayanya dulu, baru pesan.
             </h2>
             <p className="mt-4 max-w-lg text-sm leading-relaxed text-espresso-500 sm:text-base">
               Unggah satu foto, pilih produk, lalu lihat hasilnya. Foto Anda
@@ -243,17 +240,17 @@ export default async function StorefrontPage({
               {
                 step: "01",
                 title: "Pilih produk",
-                body: "Buka koleksi dan pilih potongan yang kamu suka.",
+                body: "Buka koleksi, lalu pilih yang kamu suka.",
               },
               {
                 step: "02",
                 title: "Unggah foto",
-                body: "Gunakan foto tubuh utuh dengan cahaya yang cukup.",
+                body: "Pakai foto seluruh badan dengan cahaya yang cukup.",
               },
               {
                 step: "03",
                 title: "Lihat hasilnya",
-                body: "Simpan gambar, lalu lanjutkan ke checkout.",
+                body: "Kalau sudah cocok, simpan gambarnya dan lanjut checkout.",
               },
             ].map((item) => (
               <li
@@ -293,12 +290,12 @@ export default async function StorefrontPage({
               Cerita kami
             </p>
             <h2 className="mt-4 max-w-lg font-display text-[clamp(2rem,4vw,3.5rem)] leading-[1.03] tracking-[-0.02em]">
-              Dari kain yang dipilih dengan sabar.
+              Kain pilihan, dijahit dengan sabar.
             </h2>
             <p className="mt-5 max-w-md text-sm leading-relaxed text-ivory-100/75 sm:text-base">
-              Kami bekerja dengan perajin lokal untuk menjaga motif, warna, dan
-              jahitan tetap dekat dengan asalnya. Setiap potong dibuat dalam
-              jumlah kecil agar tidak ada yang sama persis.
+              Kami kerja sama dengan perajin lokal supaya motif, warna, dan
+              jahitannya tetap terjaga. Tiap potong dibuat dalam jumlah kecil,
+              jadi tidak ada yang benar-benar sama.
             </p>
 
             <dl className="mt-8 grid grid-cols-3 gap-4 border-t border-ivory-50/20 pt-6">
@@ -308,7 +305,7 @@ export default async function StorefrontPage({
               </div>
               <div>
                 <dt className="text-xs text-ivory-100/55">Jahitan</dt>
-                <dd className="mt-1 text-sm">Terbatas</dd>
+                <dd className="mt-1 text-sm">Rapi</dd>
               </div>
               <div>
                 <dt className="text-xs text-ivory-100/55">Ukuran</dt>

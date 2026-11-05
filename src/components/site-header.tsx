@@ -42,7 +42,7 @@ export function SiteHeader({ user }: { user: SessionUser | null }) {
   return (
     <header className="sticky top-0 z-40">
       <div className="bg-espresso-900 px-5 py-2 text-center text-[10px] font-medium tracking-[0.14em] text-ivory-100/85 uppercase sm:text-[11px]">
-        Gratis pengiriman untuk pesanan di atas Rp 1.000.000
+        Gratis ongkir buat pesanan di atas Rp 1.000.000
       </div>
 
       <div className="border-b border-line bg-ivory-100/95 backdrop-blur">

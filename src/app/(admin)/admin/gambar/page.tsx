@@ -18,8 +18,8 @@ export default async function SiteImagesPage() {
         <div>
           <h1 className="font-display text-4xl leading-tight">Gambar situs</h1>
           <p className="mt-2 max-w-2xl text-sm text-espresso-500">
-            Ganti foto besar yang tampil di beranda. Foto produk diatur dari
-            halaman produk.
+            Atur foto yang bergantian di beranda dan foto cerita toko. Foto
+            produk diatur dari halaman produk.
           </p>
         </div>
         <Link

@@ -126,8 +126,8 @@ function SlotCard({ slot }: { slot: SiteImage }) {
         </div>
 
         <p className="mt-3 text-xs text-espresso-500">
-          JPG, PNG, atau WEBP. Maksimal 5 MB. Gunakan foto lanskap agar tidak
-          terpotong.
+          JPG, PNG, atau WEBP. Maksimal 5 MB. Sebaiknya pakai foto lanskap
+          supaya tidak terpotong.
         </p>
         {notice ? (
           <p role="status" className="mt-2 text-xs text-sage-700">

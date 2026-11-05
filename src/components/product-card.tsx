@@ -37,7 +37,7 @@ export function ProductCard({ product }: { product: Product }) {
           href={`/try-on?produk=${product.slug}`}
           className="absolute right-3 bottom-3 inline-flex min-h-9 items-center rounded-full bg-ivory-50/95 px-3.5 text-[11px] font-medium text-espresso-900 transition-colors hover:bg-espresso-900 hover:text-ivory-50"
         >
-          Coba Try-On
+          Coba dulu
         </Link>
       </div>
 
