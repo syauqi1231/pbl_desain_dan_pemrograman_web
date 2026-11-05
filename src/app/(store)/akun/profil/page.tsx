@@ -12,8 +12,13 @@ export const metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function ProfilePage() {
+export default async function ProfilePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lengkapi?: string }>;
+}) {
   const session = await requirePageUser("/akun/profil");
+  const params = await searchParams;
   const user = await prisma.user.findUnique({
     where: { id: session.id },
     select: {
@@ -23,13 +28,13 @@ export default async function ProfilePage() {
       addressLine: true,
       city: true,
       postalCode: true,
-      mapUrl: true,
       addressNote: true,
       role: true,
     },
   });
 
   if (!user) notFound();
+  const needsAddress = params.lengkapi === "alamat" && !user.addressLine;
 
   return (
     <div className="mx-auto max-w-[900px] px-5 pt-10 pb-24 sm:px-8 lg:px-10">
@@ -49,6 +54,15 @@ export default async function ProfilePage() {
         Perbarui nama, email, nomor telepon, dan alamat pengiriman. Data ini
         dipakai untuk mengisi checkout berikutnya.
       </p>
+
+      {needsAddress ? (
+        <p
+          role="status"
+          className="mt-5 rounded-2xl border border-sage-700 bg-ivory-50 p-4 text-sm text-sage-700"
+        >
+          Lengkapi nomor telepon dan alamat pengiriman sebelum checkout.
+        </p>
+      ) : null}
 
       <section className="mt-8 rounded-[var(--radius-card)] border border-line bg-ivory-50 p-5 sm:p-6">
         <ProfileForm user={user} />

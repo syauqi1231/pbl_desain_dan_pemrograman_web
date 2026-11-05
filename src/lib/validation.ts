@@ -5,16 +5,6 @@ const phoneField = z
   .trim()
   .regex(/^[0-9+\-\s()]{8,20}$/, "Masukkan nomor telepon yang valid.");
 
-const mapUrlField = z
-  .string({ error: "Masukkan tautan peta rumah." })
-  .trim()
-  .max(500, "Tautan peta maksimal 500 karakter.")
-  .pipe(z.url("Masukkan tautan peta yang valid, diawali https://."));
-
-const optionalMapUrlField = z
-  .union([z.literal(""), mapUrlField])
-  .optional();
-
 const addressNoteField = z
   .string()
   .trim()
@@ -39,7 +29,6 @@ export const registerSchema = z.object({
     .trim()
     .min(8, "Alamat minimal 8 karakter.")
     .max(300, "Alamat maksimal 300 karakter."),
-  mapUrl: mapUrlField,
   addressNote: addressNoteField,
 });
 
@@ -79,7 +68,6 @@ export const profileUpdateSchema = z.object({
     .regex(/^[0-9]{5}$/, "Kode pos terdiri dari 5 angka.")
     .optional()
     .or(z.literal("")),
-  mapUrl: optionalMapUrlField,
   addressNote: addressNoteField,
 });
 
@@ -151,6 +139,9 @@ export const productSchema = z.object({
   collections: z
     .array(z.enum(["baru", "batik", "kebaya"]))
     .min(1, "Pilih minimal satu koleksi."),
+  productType: z.enum(["single", "couple"]).default("single"),
+  bestSeller: z.boolean().default(false),
+  isNew: z.boolean().default(false),
   tone: z.coerce.number().int().min(200).max(500).default(300),
   image: z
     .string()

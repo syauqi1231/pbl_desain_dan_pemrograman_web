@@ -1,4 +1,4 @@
-# Boutique: Design Direction
+# Boutique NC: Design Direction
 
 Source: the four reference screens in `../` (Warm Ivory set).
 This file records the direction. `src/app/globals.css` is the single source of the tokens.
@@ -58,8 +58,8 @@ Reason: the ivory paper is the brand identity named in the chosen design, not a 
 
 ## Placeholder policy
 
-- Product photography is stock from Wikimedia Commons, cropped for the cards. Every file is credited on `/kredit` and in `public/products/CREDITS.md`, with a link to the source and licence. It is demo photography for a demo shop, not the owner's own catalogue.
-- The shop name is the literal `[NAMA BOUTIQUE]` placeholder until the owner supplies one.
+- Product photography is demo photography for a demo shop. The owner can replace every product photo and the two homepage photos from the admin area.
+- The shop name is **Boutique NC**.
 - Customer names in the demo chat are `[Nama pelanggan]`. The seeded customer account is `Pelanggan Demo` so real personal data is never invented.
 - Admin numbers come from the database. With no orders, revenue shows `Rp 0` and the list shows an empty state. Demo chat is marked `Contoh data`.
 - AI Try-On calls the official **FASHN VTON v1.5** Hugging Face Space through its Gradio queue API. It never presents a stand-in image as a real try-on result. Customer photos are not stored; only the generated result is kept and shown to its owner.

@@ -65,7 +65,7 @@ export default async function ProductPage({
     description: product.description,
     sku: product.slug,
     material: product.material,
-    brand: { "@type": "Brand", name: "Nama Boutique" },
+    brand: { "@type": "Brand", name: "Boutique NC" },
     ...(product.image ? { image: [absoluteUrl(product.image)] } : {}),
     offers: {
       "@type": "Offer",

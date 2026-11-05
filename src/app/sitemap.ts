@@ -18,12 +18,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 1,
     },
-    {
-      url: absoluteUrl("/kredit"),
-      lastModified: new Date(),
-      changeFrequency: "yearly",
-      priority: 0.2,
-    },
     ...products.map((product) => ({
       url: absoluteUrl(`/produk/${product.slug}`),
       lastModified: product.updatedAt,

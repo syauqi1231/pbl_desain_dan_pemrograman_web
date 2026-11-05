@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminAutoRefresh } from "@/components/admin/admin-auto-refresh";
 import { AdminOrdersTable } from "@/components/admin/orders-table";
+import { ProductFilters } from "@/components/admin/product-filters";
 import { buttonStyles } from "@/components/ui/button";
 import { ProductMedia } from "@/components/ui/product-media";
 import { SampleTag } from "@/components/ui/status";
@@ -45,7 +46,14 @@ function Kpi({
 export default async function AdminPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: string }>;
+  searchParams: Promise<{
+    view?: string;
+    ukuran?: string;
+    tipe?: string;
+    harga?: string;
+    terbaik?: string;
+    baru?: string;
+  }>;
 }) {
   const user = await requireAdminPage("/admin");
   const params = await searchParams;
@@ -58,6 +66,40 @@ export default async function AdminPage({
     getAdminOrders(),
     getAdminCatalog(),
   ]);
+
+  const sizes = Array.from(
+    new Set(products.flatMap((product) => product.sizes)),
+  ).sort((a, b) => a.localeCompare(b, "id"));
+  const filterState = {
+    ukuran: params.ukuran ?? "",
+    tipe: params.tipe === "couple" || params.tipe === "single" ? params.tipe : "",
+    harga: params.harga ?? "",
+    terbaik: params.terbaik === "1" ? "1" : "",
+    baru: params.baru === "1" ? "1" : "",
+  };
+  const priceRange = filterState.harga
+    .split("-")
+    .map((value) => Number(value));
+  const filteredProducts = products.filter((product) => {
+    if (filterState.ukuran && !product.sizes.includes(filterState.ukuran)) {
+      return false;
+    }
+    if (filterState.tipe && product.productType !== filterState.tipe) {
+      return false;
+    }
+    if (
+      priceRange.length === 2 &&
+      priceRange.every((value) => Number.isFinite(value))
+    ) {
+      if (product.price < priceRange[0] || product.price > priceRange[1]) {
+        return false;
+      }
+    }
+    if (filterState.terbaik === "1" && !product.bestSeller) return false;
+    if (filterState.baru === "1" && !product.isNew) return false;
+    return true;
+  });
+  const hasFilter = Object.values(filterState).some(Boolean);
 
   return (
     <>
@@ -181,46 +223,92 @@ export default async function AdminPage({
       ) : null}
 
       {active === "produk" ? (
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => {
-            const stock = Object.values(product.stockBySize).reduce(
-              (total, value) => total + value,
-              0,
-            );
+        <div className="mt-6 space-y-4">
+          <ProductFilters
+            sizes={sizes}
+            current={filterState}
+            resultCount={filteredProducts.length}
+            hasFilter={hasFilter}
+          />
 
-            return (
+          {filteredProducts.length === 0 ? (
+            <div className="rounded-3xl border border-line bg-ivory-50 px-6 py-14 text-center">
+              <p className="font-display text-2xl">
+                Tidak ada produk yang cocok
+              </p>
+              <p className="mt-2 text-sm text-espresso-500">
+                Coba longgarkan filter ukuran, kategori, atau harga.
+              </p>
               <Link
-                key={product.id}
-                href={`/admin/produk/${product.id}`}
-                className="flex gap-4 rounded-3xl bg-ivory-50 p-4 transition-colors hover:bg-ivory-200"
+                href="/admin?view=produk"
+                className={buttonStyles({
+                  variant: "secondary",
+                  className: "mt-5",
+                })}
               >
-                <ProductMedia
-                  product={product}
-                  showLabel={false}
-                  radius="rounded-xl"
-                  className="h-24 w-20 shrink-0"
-                />
-                <div className="min-w-0">
-                  <p className="font-display text-lg leading-tight">
-                    {product.name}
-                  </p>
-                  <p className="mt-1 text-sm text-espresso-500">
-                    {formatIDR(product.price)}
-                  </p>
-                  <p
-                    className={`mt-2 text-xs ${
-                      product.active ? "text-sage-700" : "text-clay-600"
-                    }`}
-                  >
-                    {product.active ? "Aktif di toko" : "Tidak aktif"}
-                  </p>
-                  <p className="mt-1 text-xs text-espresso-500">
-                    Total stok {stock}
-                  </p>
-                </div>
+                Reset filter
               </Link>
-            );
-          })}
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredProducts.map((product) => {
+                const stock = Object.values(product.stockBySize).reduce(
+                  (total, value) => total + value,
+                  0,
+                );
+
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/admin/produk/${product.id}`}
+                    className="flex gap-4 rounded-3xl bg-ivory-50 p-4 transition-colors hover:bg-ivory-200"
+                  >
+                    <ProductMedia
+                      product={product}
+                      showLabel={false}
+                      radius="rounded-xl"
+                      className="h-28 w-24 shrink-0"
+                    />
+                    <div className="min-w-0">
+                      <p className="font-display text-lg leading-tight">
+                        {product.name}
+                      </p>
+                      <p className="mt-1 text-sm text-espresso-500">
+                        {formatIDR(product.price)}
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="rounded-full border border-line px-2 py-0.5 text-[11px] text-espresso-500">
+                          {product.productType === "couple"
+                            ? "Couple"
+                            : "Single"}
+                        </span>
+                        {product.bestSeller ? (
+                          <span className="rounded-full bg-sand-200 px-2 py-0.5 text-[11px]">
+                            Terbaik
+                          </span>
+                        ) : null}
+                        {product.isNew ? (
+                          <span className="rounded-full bg-clay-500 px-2 py-0.5 text-[11px] text-white">
+                            Baru
+                          </span>
+                        ) : null}
+                      </div>
+                      <p
+                        className={`mt-2 text-xs ${
+                          product.active ? "text-sage-700" : "text-clay-600"
+                        }`}
+                      >
+                        {product.active ? "Aktif di toko" : "Tidak aktif"}
+                      </p>
+                      <p className="mt-1 text-xs text-espresso-500">
+                        Total stok {stock}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          )}
         </div>
       ) : null}
 

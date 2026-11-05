@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
-import type { Collection, Product } from "@/lib/types";
+import type { Collection, Product, ProductType } from "@/lib/types";
 
 type VariantRow = { size: string; stock: string };
 
@@ -44,6 +44,11 @@ export function ProductForm({
   const [collections, setCollections] = useState<Collection[]>(
     product?.collections ?? ["baru"],
   );
+  const [productType, setProductType] = useState<ProductType>(
+    product?.productType ?? "single",
+  );
+  const [bestSeller, setBestSeller] = useState(product?.bestSeller ?? false);
+  const [isNew, setIsNew] = useState(product?.isNew ?? false);
   const [tone, setTone] = useState(String(product?.tone ?? 300));
   const [image, setImage] = useState(product?.image ?? "");
   const [imageAlt, setImageAlt] = useState(product?.imageAlt ?? "");
@@ -162,6 +167,9 @@ export function ProductForm({
       material: material.trim(),
       price: Number(price),
       collections,
+      productType,
+      bestSeller,
+      isNew,
       tone: Number(tone),
       image: image.trim(),
       imageAlt: imageAlt.trim(),
@@ -200,6 +208,9 @@ export function ProductForm({
           "material",
           "price",
           "collections",
+          "productType",
+          "bestSeller",
+          "isNew",
           "image",
           "imageAlt",
           "tryOnCategory",
@@ -312,6 +323,61 @@ export function ProductForm({
               <p className="mt-2 text-xs text-clay-600">{errors.collections}</p>
             ) : null}
           </fieldset>
+
+          <fieldset>
+            <legend className="text-sm font-medium">Kategori produk</legend>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {(
+                [
+                  { value: "single", label: "Single" },
+                  { value: "couple", label: "Couple" },
+                ] as const
+              ).map((option) => {
+                const checked = productType === option.value;
+                return (
+                  <label
+                    key={option.value}
+                    className={`inline-flex min-h-11 cursor-pointer items-center rounded-full border px-4 text-sm focus-within:outline-2 focus-within:outline-clay-500 focus-within:outline-offset-2 ${
+                      checked
+                        ? "border-clay-500 bg-clay-500 text-white"
+                        : "border-line bg-ivory-50"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="kategori-produk"
+                      value={option.value}
+                      checked={checked}
+                      onChange={() => setProductType(option.value)}
+                      className="sr-only"
+                    />
+                    {option.label}
+                  </label>
+                );
+              })}
+            </div>
+          </fieldset>
+
+          <div className="grid gap-2">
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={bestSeller}
+                onChange={(event) => setBestSeller(event.target.checked)}
+                className="size-5 rounded border-line"
+              />
+              Tandai sebagai produk terbaik
+            </label>
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input
+                type="checkbox"
+                checked={isNew}
+                onChange={(event) => setIsNew(event.target.checked)}
+                className="size-5 rounded border-line"
+              />
+              Tandai sebagai produk baru
+            </label>
+          </div>
 
           <div>
             <label htmlFor="kategori-tryon" className="block text-sm font-medium">

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { AddressPicker } from "@/components/address-picker";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 
@@ -12,21 +13,10 @@ type ProfileUser = {
   addressLine: string | null;
   city: string | null;
   postalCode: string | null;
-  mapUrl: string | null;
   addressNote: string | null;
 };
 
 type FieldErrors = Record<string, string | undefined>;
-
-function isValidMapUrl(value: string): boolean {
-  if (!value.trim()) return true;
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
 
 export function ProfileForm({ user }: { user: ProfileUser }) {
   const router = useRouter();
@@ -36,7 +26,6 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
   const [addressLine, setAddressLine] = useState(user.addressLine ?? "");
   const [city, setCity] = useState(user.city ?? "");
   const [postalCode, setPostalCode] = useState(user.postalCode ?? "");
-  const [mapUrl, setMapUrl] = useState(user.mapUrl ?? "");
   const [addressNote, setAddressNote] = useState(user.addressNote ?? "");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
@@ -47,7 +36,6 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
     setAddressLine("");
     setCity("");
     setPostalCode("");
-    setMapUrl("");
     setAddressNote("");
     setNotice("Alamat dikosongkan. Tekan Simpan profil untuk menerapkan.");
   }
@@ -65,9 +53,6 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
     }
     if (postalCode.trim() && !/^[0-9]{5}$/.test(postalCode.trim())) {
       local.postalCode = "Kode pos terdiri dari 5 angka.";
-    }
-    if (!isValidMapUrl(mapUrl)) {
-      local.mapUrl = "Masukkan tautan peta yang valid, diawali https://.";
     }
     if (addressNote.trim().length > 300) {
       local.addressNote = "Deskripsi alamat maksimal 300 karakter.";
@@ -90,7 +75,6 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
           addressLine: addressLine.trim(),
           city: city.trim(),
           postalCode: postalCode.trim(),
-          mapUrl: mapUrl.trim(),
           addressNote: addressNote.trim(),
         }),
       });
@@ -110,7 +94,6 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
           "addressLine",
           "city",
           "postalCode",
-          "mapUrl",
           "addressNote",
         ]) {
           if (details[key]?.[0]) mapped[key] = details[key][0];
@@ -161,60 +144,28 @@ export function ProfileForm({ user }: { user: ProfileUser }) {
       </div>
 
       <div className="border-t border-line pt-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2 className="font-display text-2xl">Alamat pengiriman</h2>
-            <p className="mt-1 text-sm text-espresso-500">
-              Disimpan untuk mengisi checkout berikutnya.
-            </p>
-          </div>
+        <div className="mb-4 flex justify-end">
           <Button type="button" variant="quiet" onClick={clearAddress}>
             Kosongkan alamat
           </Button>
         </div>
 
-        <div className="mt-4 space-y-5">
-          <Field
-            label="Alamat"
-            value={addressLine}
-            onChange={setAddressLine}
-            error={errors.addressLine}
-            autoComplete="street-address"
-            hint="Jalan, nomor rumah, RT/RW, kelurahan."
-          />
-          <div className="grid gap-5 sm:grid-cols-2">
-            <Field
-              label="Kota / kabupaten"
-              value={city}
-              onChange={setCity}
-              error={errors.city}
-              autoComplete="address-level2"
-            />
-            <Field
-              label="Kode pos"
-              value={postalCode}
-              onChange={setPostalCode}
-              error={errors.postalCode}
-              autoComplete="postal-code"
-            />
-          </div>
-          <Field
-            label="Tautan peta rumah"
-            type="url"
-            value={mapUrl}
-            onChange={setMapUrl}
-            error={errors.mapUrl}
-            hint="Tempel tautan lokasi dari aplikasi peta."
-            autoComplete="url"
-          />
-          <Field
-            label="Deskripsi alamat (opsional)"
-            value={addressNote}
-            onChange={setAddressNote}
-            error={errors.addressNote}
-            hint="Patokan atau detail tambahan untuk kurir."
-          />
-        </div>
+        <AddressPicker
+          address={addressLine}
+          city={city}
+          postalCode={postalCode}
+          note={addressNote}
+          onAddressChange={setAddressLine}
+          onCityChange={setCity}
+          onPostalCodeChange={setPostalCode}
+          onNoteChange={setAddressNote}
+          errors={{
+            addressLine: errors.addressLine,
+            city: errors.city,
+            postalCode: errors.postalCode,
+            addressNote: errors.addressNote,
+          }}
+        />
       </div>
 
       {notice ? (

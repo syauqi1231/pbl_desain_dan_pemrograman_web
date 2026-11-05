@@ -49,7 +49,7 @@ export default function ChatPage() {
           className="size-10 shrink-0 rounded-full bg-sand-200"
         />
         <div className="min-w-0">
-          <p className="truncate font-medium">Admin [Nama Boutique]</p>
+          <p className="truncate font-medium">Admin Boutique NC</p>
           <p className="flex items-center gap-1.5 text-xs text-sage-700">
             <span aria-hidden="true" className="size-1.5 rounded-full bg-sage-700" />
             Demo, belum tersambung

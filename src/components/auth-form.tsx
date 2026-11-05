@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { AddressPicker } from "@/components/address-picker";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { SectionLabel } from "@/components/ui/label";
@@ -16,20 +17,10 @@ type FieldErrors = {
   password?: string;
   phone?: string;
   addressLine?: string;
-  mapUrl?: string;
   addressNote?: string;
 };
 
 const PHONE_PATTERN = /^[0-9+\-\s()]{8,20}$/;
-
-function isValidMapUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "https:" || parsed.protocol === "http:";
-  } catch {
-    return false;
-  }
-}
 
 const copy = {
   masuk: {
@@ -74,7 +65,6 @@ export function AuthForm({
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [addressLine, setAddressLine] = useState("");
-  const [mapUrl, setMapUrl] = useState("");
   const [addressNote, setAddressNote] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
@@ -101,9 +91,6 @@ export function AuthForm({
       if (addressLine.trim().length < 8) {
         local.addressLine = "Alamat minimal 8 karakter.";
       }
-      if (!isValidMapUrl(mapUrl.trim())) {
-        local.mapUrl = "Masukkan tautan peta yang valid, diawali https://.";
-      }
     }
 
     setErrors(local);
@@ -124,7 +111,6 @@ export function AuthForm({
                 password,
                 phone: phone.trim(),
                 addressLine: addressLine.trim(),
-                mapUrl: mapUrl.trim(),
                 addressNote: addressNote.trim() || undefined,
               }
             : { email: email.trim(), password },
@@ -144,7 +130,6 @@ export function AuthForm({
         if (details.password?.[0]) mapped.password = details.password[0];
         if (details.phone?.[0]) mapped.phone = details.phone[0];
         if (details.addressLine?.[0]) mapped.addressLine = details.addressLine[0];
-        if (details.mapUrl?.[0]) mapped.mapUrl = details.mapUrl[0];
         if (details.addressNote?.[0]) mapped.addressNote = details.addressNote[0];
         setErrors(mapped);
         setNotice(data.error ?? "Tidak bisa memproses permintaan. Coba lagi.");
@@ -214,31 +199,15 @@ export function AuthForm({
               autoComplete="tel"
               required
             />
-            <Field
-              label="Alamat"
-              value={addressLine}
-              onChange={setAddressLine}
-              error={errors.addressLine}
-              hint="Jalan, nomor rumah, RT/RW, kelurahan."
-              autoComplete="street-address"
-              required
-            />
-            <Field
-              label="Tautan peta rumah"
-              type="url"
-              value={mapUrl}
-              onChange={setMapUrl}
-              error={errors.mapUrl}
-              hint="Tempel tautan lokasi dari aplikasi peta."
-              autoComplete="url"
-              required
-            />
-            <Field
-              label="Deskripsi alamat (opsional)"
-              value={addressNote}
-              onChange={setAddressNote}
-              error={errors.addressNote}
-              hint="Patokan atau detail tambahan untuk kurir."
+            <AddressPicker
+              address={addressLine}
+              note={addressNote}
+              onAddressChange={setAddressLine}
+              onNoteChange={setAddressNote}
+              errors={{
+                addressLine: errors.addressLine,
+                addressNote: errors.addressNote,
+              }}
             />
           </div>
         ) : null}

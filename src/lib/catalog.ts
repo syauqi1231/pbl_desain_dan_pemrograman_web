@@ -5,6 +5,10 @@ import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { cache } from "react";
 import { isCollection } from "@/lib/collections";
+import {
+  catalogPriceRange,
+  type CatalogFilterInput,
+} from "@/lib/catalog-options";
 import { prisma } from "@/lib/db";
 import { productImageExists } from "@/lib/storage";
 import type { Collection, Product, TryOnPhotoType } from "@/lib/types";
@@ -47,6 +51,9 @@ export function mapProduct(row: ProductRow): Product {
     collections: row.collections.map(
       (collection) => collection.toLowerCase() as Collection,
     ),
+    productType: row.productType === "COUPLE" ? "couple" : "single",
+    bestSeller: row.bestSeller,
+    isNew: row.isNew,
     price: row.price,
     tone: row.tone,
     image: usableImage(row.image),
@@ -113,6 +120,49 @@ export function filterProducts(
   if (!isCollection(kategori)) return products;
 
   return products.filter((product) => product.collections.includes(kategori));
+}
+
+export function filterCatalog(
+  products: Product[],
+  filters: CatalogFilterInput,
+): Product[] {
+  let items = filterProducts(products, filters.kategori);
+
+  if (filters.ukuran) {
+    items = items.filter((product) => product.sizes.includes(filters.ukuran!));
+  }
+
+  if (filters.tipe === "single" || filters.tipe === "couple") {
+    items = items.filter((product) => product.productType === filters.tipe);
+  }
+
+  const price = catalogPriceRange(filters.harga ?? "");
+  if (price) {
+    items = items.filter(
+      (product) => product.price >= price[0] && product.price <= price[1],
+    );
+  }
+
+  if (filters.terbaik === "1") {
+    items = items.filter((product) => product.bestSeller);
+  }
+
+  if (filters.baru === "1") {
+    items = items.filter((product) => product.isNew);
+  }
+
+  return items;
+}
+
+export function catalogSizes(products: Product[]): string[] {
+  const sizes = new Set<string>();
+  for (const product of products) {
+    for (const size of product.sizes) sizes.add(size);
+  }
+
+  return [...sizes].sort((a, b) =>
+    a.localeCompare(b, "id", { numeric: true }),
+  );
 }
 
 export function prismaCollection(value: string): PrismaCollection {

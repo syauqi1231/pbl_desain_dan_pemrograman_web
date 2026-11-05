@@ -1,46 +1,75 @@
 import Link from "next/link";
 
-const links = [
-  { href: "/#koleksi", label: "Koleksi" },
+const collections = [
+  { href: "/#koleksi", label: "Semua koleksi" },
   { href: "/?kategori=baru#koleksi", label: "Baru" },
   { href: "/?kategori=batik#koleksi", label: "Batik" },
   { href: "/?kategori=kebaya#koleksi", label: "Kebaya" },
+];
+
+const services = [
   { href: "/try-on", label: "AI Try-On" },
   { href: "/chat", label: "Chat" },
-  { href: "/kredit", label: "Kredit foto" },
+  { href: "/akun", label: "Akun saya" },
+  { href: "/masuk", label: "Masuk" },
 ];
 
 export function SiteFooter() {
   return (
-    <footer className="mt-24 border-t border-line">
-      <div className="mx-auto flex max-w-[1400px] flex-col gap-8 px-5 py-12 sm:px-8 lg:flex-row lg:items-end lg:justify-between lg:px-10">
-        <div>
-          <p className="font-display text-2xl uppercase">[Nama Boutique]</p>
-          <p className="mt-2 max-w-sm text-sm text-espresso-500">
-            Kebaya, batik, dan tenun pilihan. Dijahit rapi.
-          </p>
+    <footer className="mt-20 bg-espresso-900 text-ivory-100">
+      <div className="mx-auto max-w-[1540px] px-5 py-14 sm:px-8 lg:px-10 lg:py-16">
+        <div className="grid gap-12 lg:grid-cols-[1.4fr_1fr_1fr]">
+          <div>
+            <p className="font-display text-4xl leading-none tracking-[-0.02em] text-ivory-50 sm:text-5xl">
+              Boutique NC
+            </p>
+            <p className="mt-4 max-w-sm text-sm leading-relaxed text-ivory-100/65">
+              Kebaya, batik, dan tenun pilihan. Dibuat dalam jumlah kecil,
+              dijahit rapi, untuk dipakai lama.
+            </p>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold tracking-[0.18em] text-ivory-100/45 uppercase">
+              Koleksi
+            </p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {collections.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="transition-colors hover:text-sand-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div>
+            <p className="text-[10px] font-semibold tracking-[0.18em] text-ivory-100/45 uppercase">
+              Layanan
+            </p>
+            <ul className="mt-4 space-y-2.5 text-sm">
+              {services.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="transition-colors hover:text-sand-300"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        <nav aria-label="Navigasi footer">
-          <ul className="flex flex-wrap gap-x-8 gap-y-3 text-sm">
-            {links.map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="transition-colors hover:text-clay-500"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-      </div>
-      <div className="mx-auto max-w-[1400px] px-5 pb-10 text-xs text-espresso-500 sm:px-8 lg:px-10">
-        <p>
-          © {new Date().getFullYear()} Nama Boutique. Data produk pada demo ini
-          adalah contoh.
-        </p>
+        <div className="mt-14 flex flex-col gap-3 border-t border-ivory-50/15 pt-6 text-xs text-ivory-100/45 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Boutique NC.</p>
+          <p>Data produk pada demo ini adalah contoh.</p>
+        </div>
       </div>
     </footer>
   );

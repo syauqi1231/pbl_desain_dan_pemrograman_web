@@ -1,12 +1,13 @@
 "use client";
 
-import { useId } from "react";
+import { useId, type KeyboardEventHandler } from "react";
 
 type FieldProps = {
   label: string;
   type?: string;
   value: string;
   onChange: (value: string) => void;
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
   error?: string;
   hint?: string;
   autoComplete?: string;
@@ -18,6 +19,7 @@ export function Field({
   type = "text",
   value,
   onChange,
+  onKeyDown,
   error,
   hint,
   autoComplete,
@@ -44,6 +46,7 @@ export function Field({
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy || undefined}
         onChange={(event) => onChange(event.target.value)}
+        onKeyDown={onKeyDown}
         className={`min-h-11 w-full rounded-full border bg-ivory-50 px-5 text-sm ${
           error ? "border-clay-500" : "border-line"
         }`}

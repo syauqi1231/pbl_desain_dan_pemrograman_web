@@ -16,11 +16,11 @@ export default async function AdminLayout({
       <aside className="hidden w-[240px] shrink-0 flex-col bg-espresso-900 px-4 py-8 lg:sticky lg:top-0 lg:flex lg:h-dvh">
         <Link
           href="/admin"
-          className="px-3 font-display text-lg leading-tight text-ivory-50 uppercase"
+          className="px-3 font-display text-lg leading-tight tracking-[0.02em] text-ivory-50 uppercase"
         >
-          [Nama
+          Boutique
           <br />
-          Boutique]
+          NC
         </Link>
 
         <Suspense fallback={<div className="mt-10 h-40" />}>
@@ -42,7 +42,7 @@ export default async function AdminLayout({
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-4 border-b border-line bg-ivory-100 px-5 py-4 lg:hidden">
           <Link href="/admin" className="font-display text-base uppercase">
-            [Nama Boutique]
+            Boutique NC
           </Link>
           <div className="flex items-center gap-1">
             <Link

@@ -55,6 +55,11 @@ enum FinanceType {
   EXPENSE
 }
 
+enum ProductType {
+  SINGLE
+  COUPLE
+}
+
 model User {
   id             String         @id @default(cuid())
   email          String         @unique
@@ -87,24 +92,27 @@ model Session {
 }
 
 model Product {
-  id              String           @id @default(cuid())
-  slug            String           @unique
-  name            String
-  description     String
-  material        String
-  price           Int
-  collections     Collection[]
-  tone            Int              @default(300)
-  image           String?
-  imageAlt        String?
-  tryOnCategory   String           @default("upper_body")
-  tryOnPhotoType  String?
-  active          Boolean          @default(true)
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  variants        ProductVariant[]
-  orderItems      OrderItem[]
-  tryOnJobs       TryOnJob[]
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  name           String
+  description    String
+  material       String
+  price          Int
+  collections    Collection[]
+  productType    ProductType      @default(SINGLE)
+  bestSeller     Boolean          @default(false)
+  isNew          Boolean          @default(false)
+  tone           Int              @default(300)
+  image          String?
+  imageAlt       String?
+  tryOnCategory  String           @default("upper_body")
+  tryOnPhotoType String?
+  active         Boolean          @default(true)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  variants       ProductVariant[]
+  orderItems     OrderItem[]
+  tryOnJobs      TryOnJob[]
 
   @@index([active])
 }
@@ -191,20 +199,29 @@ model FinanceEntry {
   @@index([type])
 }
 
+model SiteImage {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  image     String
+  imageAlt  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model TryOnJob {
-  id         String       @id @default(cuid())
+  id         String      @id @default(cuid())
   userId     String?
-  user       User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user       User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
   productId  String?
-  product    Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
-  status     TryOnStatus  @default(PROCESSING)
-  provider   String       @default("fashn")
+  product    Product?    @relation(fields: [productId], references: [id], onDelete: SetNull)
+  status     TryOnStatus @default(PROCESSING)
+  provider   String      @default("fashn")
   photoPath  String?
   resultPath String?
   note       String?
   error      String?
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
 
   @@index([userId])
 }

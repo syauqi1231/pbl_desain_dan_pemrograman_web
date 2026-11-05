@@ -10,7 +10,7 @@ const body = Manrope({
   display: "swap",
 });
 
-const siteName = "Nama Boutique";
+const siteName = "Boutique NC";
 const description =
   "Kebaya, batik, dan tenun pilihan. Coba tampilannya dengan AI Virtual Try-On sebelum memesan.";
 

@@ -1,5 +1,7 @@
 export type Collection = "baru" | "batik" | "kebaya";
 
+export type ProductType = "single" | "couple";
+
 /** FASHN decides how to read the garment photo from this hint. */
 export type TryOnPhotoType = "model" | "flat-lay";
 
@@ -8,6 +10,9 @@ export type Product = {
   slug: string;
   name: string;
   collections: Collection[];
+  productType: ProductType;
+  bestSeller: boolean;
+  isNew: boolean;
   price: number;
   tone: number;
   image: string | null;
@@ -32,6 +37,14 @@ export type SessionUser = {
   postalCode: string | null;
   mapUrl: string | null;
   addressNote: string | null;
+};
+
+export type SiteImage = {
+  key: string;
+  label: string;
+  description: string;
+  image: string;
+  imageAlt: string | null;
 };
 
 export type FinanceType = "INCOME" | "EXPENSE";

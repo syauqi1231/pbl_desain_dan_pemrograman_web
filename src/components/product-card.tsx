@@ -4,32 +4,58 @@ import type { Product } from "@/lib/types";
 import { ProductMedia } from "@/components/ui/product-media";
 
 export function ProductCard({ product }: { product: Product }) {
+  const badge = product.isNew
+    ? "Baru"
+    : product.bestSeller
+      ? "Favorit"
+      : null;
+
   return (
     <article className="group">
       <div className="relative">
         <Link
           href={`/produk/${product.slug}`}
           className="block rounded-[var(--radius-card)] transition-shadow hover:ring-2 hover:ring-clay-500 hover:ring-offset-4 hover:ring-offset-ivory-100"
+          aria-label={`Lihat ${product.name}`}
         >
           <ProductMedia product={product} className="aspect-[4/5]" />
         </Link>
+
+        {badge ? (
+          <span
+            className={`absolute top-3 left-3 rounded-full px-3 py-1 text-[10px] font-semibold tracking-[0.12em] uppercase ${
+              product.isNew
+                ? "bg-clay-500 text-white"
+                : "bg-ivory-50/95 text-espresso-900"
+            }`}
+          >
+            {badge}
+          </span>
+        ) : null}
+
         <Link
           href={`/try-on?produk=${product.slug}`}
-          className="absolute top-3 left-3 inline-flex min-h-11 items-center rounded-full bg-clay-500 px-4 text-xs font-medium text-white transition-colors hover:bg-clay-600"
+          className="absolute right-3 bottom-3 inline-flex min-h-9 items-center rounded-full bg-ivory-50/95 px-3.5 text-[11px] font-medium text-espresso-900 transition-colors hover:bg-espresso-900 hover:text-ivory-50"
         >
           Coba Try-On
         </Link>
       </div>
 
-      <div className="mt-4 flex flex-col gap-1 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
-        <h3 className="min-w-0 font-display text-lg leading-snug sm:text-xl">
-          <Link href={`/produk/${product.slug}`} className="hover:text-clay-500">
-            {product.name}
-          </Link>
-        </h3>
-        <p className="shrink-0 text-sm">{formatIDR(product.price)}</p>
+      <div className="mt-4">
+        <p className="text-[10px] font-semibold tracking-[0.14em] text-espresso-500 uppercase">
+          {product.productType === "couple" ? "Set couple" : product.material}
+        </p>
+        <div className="mt-1.5 flex items-start justify-between gap-3">
+          <h3 className="min-w-0 font-display text-base leading-snug sm:text-lg">
+            <Link href={`/produk/${product.slug}`} className="hover:text-clay-500">
+              {product.name}
+            </Link>
+          </h3>
+          <p className="shrink-0 pt-0.5 text-xs tabular-nums sm:text-sm">
+            {formatIDR(product.price)}
+          </p>
+        </div>
       </div>
-      <p className="mt-1 text-sm text-espresso-500">{product.material}</p>
     </article>
   );
 }

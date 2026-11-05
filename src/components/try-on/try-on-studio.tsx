@@ -135,7 +135,7 @@ export function TryOnStudio({
           href="/"
           className="font-display text-lg uppercase tracking-[0.01em]"
         >
-          [Nama Boutique]
+          Boutique NC
         </Link>
         <Link
           href="/akun"

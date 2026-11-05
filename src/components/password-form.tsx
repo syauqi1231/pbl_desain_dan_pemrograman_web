@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
@@ -7,6 +8,7 @@ import { Field } from "@/components/ui/field";
 type FieldErrors = Record<string, string | undefined>;
 
 export function PasswordForm() {
+  const router = useRouter();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -19,7 +21,9 @@ export function PasswordForm() {
     event.preventDefault();
 
     const local: FieldErrors = {};
-    if (!currentPassword) local.currentPassword = "Masukkan kata sandi saat ini.";
+    if (!currentPassword) {
+      local.currentPassword = "Masukkan kata sandi saat ini.";
+    }
     if (newPassword.length < 8) {
       local.newPassword = "Kata sandi baru minimal 8 karakter.";
     }
@@ -64,6 +68,7 @@ export function PasswordForm() {
       setNewPassword("");
       setConfirmPassword("");
       setNotice("Kata sandi berhasil diubah.");
+      router.refresh();
     } catch {
       setError("Tidak bisa menghubungi server. Periksa koneksi lalu coba lagi.");
     } finally {

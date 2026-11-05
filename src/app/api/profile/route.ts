@@ -11,6 +11,7 @@ import {
 } from "@/lib/api-helpers";
 import { destroySession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { generatedMapUrl } from "@/lib/maps";
 import { hashPassword, verifyPassword } from "@/lib/password";
 import {
   deleteAccountSchema,
@@ -46,7 +47,11 @@ export async function PATCH(request: Request): Promise<NextResponse> {
         addressLine: clean(body.addressLine),
         city: clean(body.city),
         postalCode: clean(body.postalCode),
-        mapUrl: clean(body.mapUrl),
+        mapUrl: generatedMapUrl(
+          body.addressLine,
+          body.city,
+          body.postalCode,
+        ),
         addressNote: clean(body.addressNote),
       },
       select: {
@@ -87,7 +92,11 @@ export async function DELETE(request: Request): Promise<NextResponse> {
       select: { passwordHash: true },
     });
 
-    if (!row || !(await verifyPassword(body.password, row.passwordHash))) {
+    if (!row) {
+      throw new ApiError(404, "Akun tidak ditemukan.");
+    }
+
+    if (!(await verifyPassword(body.password, row.passwordHash))) {
       throw new ApiError(401, "Kata sandi tidak cocok.");
     }
 

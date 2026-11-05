@@ -11,6 +11,7 @@ import {
 } from "@/lib/api-helpers";
 import { createSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { generatedMapUrl } from "@/lib/maps";
 import { hashPassword } from "@/lib/password";
 import { registerSchema } from "@/lib/validation";
 
@@ -34,7 +35,7 @@ export async function POST(request: Request): Promise<NextResponse> {
         passwordHash: await hashPassword(body.password),
         phone: body.phone.trim(),
         addressLine: body.addressLine.trim(),
-        mapUrl: body.mapUrl.trim(),
+        mapUrl: generatedMapUrl(body.addressLine),
         addressNote: body.addressNote?.trim() || null,
       },
       select: {

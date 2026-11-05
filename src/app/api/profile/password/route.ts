@@ -23,7 +23,12 @@ export async function PATCH(request: Request): Promise<NextResponse> {
       select: { passwordHash: true },
     });
 
-    if (!row || !(await verifyPassword(body.currentPassword, row.passwordHash))) {
+    if (!row) {
+      throw new ApiError(404, "Akun tidak ditemukan.");
+    }
+
+    const matches = await verifyPassword(body.currentPassword, row.passwordHash);
+    if (!matches) {
       throw new ApiError(401, "Kata sandi saat ini tidak cocok.");
     }
 
